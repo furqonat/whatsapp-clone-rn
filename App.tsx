@@ -1,5 +1,6 @@
 import { DefaultTheme } from '@react-navigation/native'
-import { Provider } from 'react-native-paper'
+import { NativeBaseProvider } from 'native-base'
+
 import { Main } from './src'
 
 const theme = {
@@ -13,8 +14,10 @@ const theme = {
 
 export default function App() {
   return (
-    <Provider theme={theme}>
+    <NativeBaseProvider>
       <Main />
-    </Provider>
+    </NativeBaseProvider>
+      
+    
   )
 }
