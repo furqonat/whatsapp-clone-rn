@@ -1,8 +1,10 @@
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
+import { FirebaseRecaptchaVerifierModal } from "expo-firebase-recaptcha";
 import { Button, Center, Input, InputGroup, InputLeftAddon, VStack } from 'native-base';
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { app, useFirebase } from 'utils';
 import { RootStackParamList } from '../screens';
 
 
@@ -13,13 +15,20 @@ const SignIn = () => {
 
   const navigation = useNavigation<otpScreenProp>();
 
-  const [text, setText] = useState('')
-  const number = `+62${text}`
+  const [phoneNumber, setPhoneNumber] = useState('')
+  const recaptchaVerifier = useRef<any>(null)
+
+  const { signInWithPhone } = useFirebase()
 
 
   const handleClick = () => {
-
-    navigation.navigate('otp')
+    const localPhoneNumber = `+62${phoneNumber}`
+    signInWithPhone(localPhoneNumber, recaptchaVerifier.current).then((n) => {
+      console.log(n)
+      navigation.navigate('otp')
+    }).catch((error) => {
+      console.log(error)
+    })
   }
 
 
@@ -27,7 +36,10 @@ const SignIn = () => {
   return (
     <SafeAreaView>
       <VStack alignItems="center" space={2.5} h="100%" px="3">
-
+        <FirebaseRecaptchaVerifierModal
+          ref={recaptchaVerifier}
+          firebaseConfig={app?.options}
+        />
         <Center mt="20" size="40" >LOGO</Center>
         <Center mt="10" >
           <InputGroup w={{
@@ -35,7 +47,7 @@ const SignIn = () => {
             md: "285"
           }}>
             <InputLeftAddon children={"+62"} />
-            <Input value={text} onChangeText={text => setText(text)} keyboardType='numeric' w={{
+            <Input value={phoneNumber} onChangeText={text => setPhoneNumber(text)} keyboardType='numeric' w={{
 
               base: "70%",
               md: "100%"
