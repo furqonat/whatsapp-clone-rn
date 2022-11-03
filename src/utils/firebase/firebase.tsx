@@ -46,11 +46,9 @@ const firebaseApp = () => {
     }, [])
 
     const signInWithPhone = async (phoneNumber: string, capthcha: ApplicationVerifier) => {
-        console.log(phoneNumber, 'firebase context')
         return signInWithPhoneNumber(auth, phoneNumber, capthcha).then((confirmation) => {
             setConfirmationResult(confirmation)
-        }).catch((error) => {
-            console.log(error)
+        }).catch((_error) => {
         })
     }
 

@@ -47,11 +47,9 @@ const Otp = () => {
 
   const handlePress = () => {
     if (value.length === 6) {
-      confirmationResult?.confirm(value).then((n) => {
-        console.log(n)
+      confirmationResult?.confirm(value).then((_n) => {
         navigation.navigate('form')
-      }).catch((error) => {
-        console.log(error)
+      }).catch((_error) => {
       })
     }
   }
