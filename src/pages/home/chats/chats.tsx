@@ -27,28 +27,48 @@ const messages = [
 ]
 
 const Chats = () => {
+
 	return (
-		<SafeAreaView style={{ backgroundColor: 'white' }} >
-			<StatusBar backgroundColor='#5b21b6' />
+		<SafeAreaView
+		  	style={{ backgroundColor: 'white' }}>
+			<StatusBar backgroundColor={'#5b21b6'} />
 			<Stack>
-				<VStack bottom={2} h={70} alignItems="center" justifyContent='space-between' backgroundColor='violet.800' direction="row" mb="2.5" mt="1.5"  >
+				<VStack
+					bottom={2}
+					h={70}
+					alignItems={"center"}
+					justifyContent={'space-between'}
+					backgroundColor={'violet.800'}
+					direction={"row"}
+					mb={"2.5"}
+					mt={"1.5"}>
 					<Stack left={10}>
-						<Text color='white' fontSize={20} bold >Rekberin</Text>
+						<Text
+							color={'white'}
+							fontSize={20}
+							bold={true}>
+							Rekberin
+						</Text>
 					</Stack>
 
-					<Stack direction="row">
-						<IconButton borderRadius='full' _icon={{
-							as: AntDesign,
-							name: "search1",
-							color: 'white',
-							size: '5'
-						}} />
-						<IconButton borderRadius='full' _icon={{
-							as: Ionicons,
-							name: "ellipsis-vertical",
-							color: 'white',
-							size: '5'
-						}} />
+					<Stack
+						direction={"row"}>
+						<IconButton
+							borderRadius='full'
+							_icon={{
+								as: AntDesign,
+								name: "search1",
+								color: 'white',
+								size: '5'
+							}} />
+						<IconButton
+							borderRadius='full'
+							_icon={{
+								as: Ionicons,
+								name: "ellipsis-vertical",
+								color: 'white',
+								size: '5'
+							}} />
 					</Stack>
 
 				</VStack>
@@ -59,13 +79,27 @@ const Chats = () => {
 								<TouchableOpacity
 									key={message.uid}
 									style={{ marginBottom: 6, backgroundColor: 'white' }}>
-									<Stack direction="row" h={20} alignItems='center' space={10} >
-										<Avatar left={5} bg="green.500" source={{
-											uri: message.photoURL
-										}} />
+									<Stack
+										direction={"row"}
+										h={20}
+										alignItems={'center'}
+										space={10}>
+										<Avatar
+											left={5}
+											bg={"green.500"}
+											source={{
+												uri: message.photoURL
+											}} />
 										<Stack>
-											<Text bold fontSize={15}>{message?.displayName}</Text>
-											<Text color='amber.400'>{message?.message}</Text>
+											<Text
+												bold={true}
+												fontSize={15}>
+												{message?.displayName}
+											</Text>
+											<Text
+												color={'amber.400'}>
+												{message?.message}
+											</Text>
 										</Stack>
 									</Stack>
 								</TouchableOpacity>
