@@ -23,11 +23,9 @@ const SignIn = () => {
 
   const handleClick = () => {
     const localPhoneNumber = `+62${phoneNumber}`
-    signInWithPhone(localPhoneNumber, recaptchaVerifier.current).then((n) => {
-      console.log(n)
+    signInWithPhone(localPhoneNumber, recaptchaVerifier.current).then((_n) => {
       navigation.navigate('otp')
-    }).catch((error) => {
-      console.log(error)
+    }).catch((_error) => {
     })
   }
 
