@@ -38,11 +38,11 @@ const formatUser = (user: IUser) => {
         photoURL: user.photoURL,
         isIDCardVerified: user.isIDCardVerified,
         emailVerified: user.emailVerified,
+        phoneNumber: user.phoneNumber
     }
 }
 
 const firebaseApp = () => {
-    const navigate = useNavigation()
     const [user, setUser] = useState<IUser | null>(null)
     const [phone, setPhone] = useState('')
     const [verificationCode, setVerificationCode] = useState(0)
@@ -219,7 +219,8 @@ const firebaseApp = () => {
         user,
         signInWithWhatsApp,
         verifyCode,
-        signIn
+        signIn, 
+        phone
     }
 }
 
@@ -230,7 +231,8 @@ const FirebaseContext = createContext({
     user: null as IUser | null,
     signInWithWhatsApp: async (_phoneNumber: string) => { },
     verifyCode: async (_code: string, _provider: "phone" | "whatsapp") => { },
-    signIn: async (_token: string) => { }
+    signIn: async (_token: string) => { },
+    phone: null as string | null
 })
 
 const FirebaseProvider = (props: { children?: React.ReactNode }) => {

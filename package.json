@@ -23,6 +23,7 @@
     "expo-barcode-scanner": "~11.4.0",
     "expo-constants": "~13.2.4",
     "expo-firebase-recaptcha": "^2.3.0",
+    "expo-image-picker": "~13.3.1",
     "expo-status-bar": "~1.4.0",
     "firebase": "9.6.11",
     "native-base": "^3.4.20",
