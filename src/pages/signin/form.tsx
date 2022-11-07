@@ -71,8 +71,11 @@ function Form() {
 			}
 		} else {
 			setPhoto(result.uri)
-			const imageFile = new File([result.uri], "avatar", { type: "image/*" })
-			uploadAvatar(imageFile)
+			// convert uri into file
+			const file = await fetch(result.uri)
+				.then(res => res.blob())
+				.then(blob => new File([blob], `${Date.now()}.png`, { type: 'image/png' }))
+			uploadAvatar(file)
 		}
 	}
 
