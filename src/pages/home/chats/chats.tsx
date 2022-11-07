@@ -1,7 +1,7 @@
 
 import { Ionicons } from "@expo/vector-icons";
 import { useChats } from "hooks";
-import { Icon, Menu, Pressable, Stack, StatusBar, Text } from 'native-base';
+import { Icon, Menu, NativeBaseProvider, Pressable, Stack, StatusBar, Text } from 'native-base';
 import React from 'react';
 import { Provider } from "react-native-paper";
 import { useFirebase } from "utils";
@@ -14,7 +14,8 @@ const Chats = () => {
 	const { chatList } = useChats({ user: user })
 
 	return (
-		<Provider>
+		<Stack
+			direction={'column'}>
 			<StatusBar backgroundColor={'#5b21b6'} />
 			<Stack
 				display={'flex'}
@@ -73,7 +74,7 @@ const Chats = () => {
 				</Stack>
 
 			</Stack>
-		</Provider>
+		</Stack>
 	)
 }
 

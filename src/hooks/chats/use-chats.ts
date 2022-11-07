@@ -2,7 +2,7 @@ import { useState, useEffect } from "react"
 import { IUser, IChatList, IChatMessage, db } from "utils"
 import { collection, onSnapshot, deleteDoc } from "@firebase/firestore"
 
-const useChats = (props: { id?: string, user?: IUser | null }) => {
+const useChats = (props: { id?: string | null, user?: IUser | null }) => {
 
     const [chatList, setChatList] = useState<IChatList[]>([])
     const [messages, setMessages] = useState<IChatMessage[]>([])
@@ -38,7 +38,7 @@ const useChats = (props: { id?: string, user?: IUser | null }) => {
                     snapshot.docChanges().forEach(change => {
                         if (change.type === "added") {
                             // play sound when new message is added and user is not in chat screen 
-                            if (document.visibilityState !== "visible" && props?.user?.uid !== change.doc.data().sender.uid) {
+                            if (props?.user?.uid !== change.doc.data().sender.uid) {
                                 // const audio = new Audio(newChatSound)
                                 // audio.play()
                             }

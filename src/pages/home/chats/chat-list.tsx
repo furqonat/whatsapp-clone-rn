@@ -1,6 +1,11 @@
+import { useNavigation } from "@react-navigation/native";
+import { StackNavigationProp } from "@react-navigation/stack";
 import { Avatar, ScrollView, Stack, Text } from "native-base"
+import { RootStackParamList } from "pages/screens";
 import { TouchableOpacity } from "react-native"
-import { IChatList, useFirebase } from "utils"
+import { IChatItem, IChatList, useFirebase } from "utils"
+
+type ChatItem = StackNavigationProp<RootStackParamList>
 
 const ChatList = (props: {
     chatsList?: IChatList[] | null
@@ -26,8 +31,10 @@ const ChatListItem = (props: {
     item: IChatList
 }) => {
     const { item } = props
-
     const { user } = useFirebase()
+
+    const navigation = useNavigation<ChatItem>()
+
     const getDisplayName = () => {
         if (user) {
             if (item.owner === user.uid) {
@@ -36,8 +43,14 @@ const ChatListItem = (props: {
             return item.ownerPhoneNumber
         }
     }
+   
     return (
-        <TouchableOpacity>
+        <TouchableOpacity
+            onPress={() => {
+                navigation.navigate('chatItem', {
+                    chatId: item.id,
+                })
+            }}>
             <Stack
                 p={5}
                 space={3}
