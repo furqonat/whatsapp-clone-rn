@@ -1,17 +1,14 @@
 import { AntDesign } from "@expo/vector-icons";
+import { doc, updateDoc } from '@firebase/firestore';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import {
-	Image, Button, Center, IconButton, Input,
-	InputGroup, useToast, VStack, Stack
-} from 'native-base';
+import * as ImagePicker from 'expo-image-picker';
+import { useAvatar } from "hooks";
+import { Button, Center, IconButton, Image, Input, Stack, useToast, VStack } from 'native-base';
 import React, { useEffect, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { db, useFirebase } from "utils";
 import { RootStackParamList } from '../screens';
-import * as ImagePicker from 'expo-image-picker'
-import { useAvatar } from "hooks";
-import { doc, updateDoc } from '@firebase/firestore';
 
 type tabScreenProp = StackNavigationProp<RootStackParamList, 'tabbar'>;
 
@@ -57,7 +54,7 @@ function Form() {
 			mediaTypes: ImagePicker.MediaTypeOptions.Images,
 			allowsEditing: true,
 			aspect: [4, 3],
-			quality: 1
+			quality: 1,
 		})
 
 		if (result.cancelled) {
@@ -135,3 +132,4 @@ function Form() {
 }
 
 export { Form };
+

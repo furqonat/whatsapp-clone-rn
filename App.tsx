@@ -29,7 +29,5 @@ export default function App() {
     <NativeBaseProvider theme={theme}>
       <Main />
     </NativeBaseProvider>
-
-
   )
 }

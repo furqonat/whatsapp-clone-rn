@@ -1,1 +1,1 @@
-export {}
+export { useChats } from './use-chats'

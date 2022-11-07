@@ -1,19 +1,15 @@
 import { initializeApp } from '@firebase/app'
 import {
-    ApplicationVerifier, ConfirmationResult, getAuth, signInWithPhoneNumber, User,
-    signInWithCustomToken,
-    getIdToken, signOut
+    ApplicationVerifier, ConfirmationResult, getAuth, getIdToken, signInWithCustomToken, signInWithPhoneNumber, signOut, User
 } from '@firebase/auth'
 import {
-    getFirestore,
-    doc, getDoc, setDoc,
+    doc, getDoc, getFirestore, setDoc,
     updateDoc
 } from '@firebase/firestore'
-import React, { createContext, useContext, useEffect, useState } from 'react'
-import { IUser } from 'utils'
 import axios from 'axios'
 import Constants from 'expo-constants'
-import { useNavigation } from '@react-navigation/native'
+import React, { createContext, useContext, useEffect, useState } from 'react'
+import { IUser } from 'utils'
 
 
 const firebaseConfig = {
@@ -219,7 +215,7 @@ const firebaseApp = () => {
         user,
         signInWithWhatsApp,
         verifyCode,
-        signIn, 
+        signIn,
         phone
     }
 }
@@ -246,3 +242,4 @@ const FirebaseProvider = (props: { children?: React.ReactNode }) => {
 
 export const useFirebase = () => useContext(FirebaseContext)
 export { db, auth, app, FirebaseProvider }
+
