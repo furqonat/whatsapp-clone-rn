@@ -1,7 +1,7 @@
 
 import { Ionicons } from "@expo/vector-icons";
 import { useChats } from "hooks";
-import { Icon, Menu, NativeBaseProvider, Pressable, Stack, StatusBar, Text } from 'native-base';
+import { Icon, IconButton, Menu, NativeBaseProvider, Pressable, Stack, StatusBar, Text } from 'native-base';
 import React from 'react';
 import { Provider } from "react-native-paper";
 import { useFirebase } from "utils";
@@ -18,13 +18,14 @@ const Chats = () => {
 			direction={'column'}>
 			<StatusBar backgroundColor={'#5b21b6'} />
 			<Stack
+				backgroundColor={'white'}
 				display={'flex'}
 				flexDirection={'column'}
 				h={'100%'}>
 				<Stack
 					alignItems={"center"}
 					justifyContent={'space-between'}
-					space={3}
+					
 					width={'100%'}
 					p={5}
 					shadow={2}
@@ -40,27 +41,29 @@ const Chats = () => {
 					</Stack>
 
 					<Stack
+					left={3}
 						justifyItems={'center'}
 						direction={'row'}
-						space={5}>
-						<Icon
-							as={<Ionicons name="search" />}
-							color={'white'}
-							size={6} />
-						<Menu
-							trigger={props => (
-								<Pressable accessibilityLabel={'more menu'} {...props}>
-									<Icon
-										as={Ionicons}
-										name={"ellipsis-vertical"}
-										borderRadius={'full'}
-										color={'white'}
-										size={6} />
-								</Pressable>
-							)}>
+						space={1}>
+						<IconButton borderRadius='full' _icon={{
+							as: Ionicons,
+							name: "scan-outline",
+							color: 'white',
+							size: '5'
+						}} />
+						<Menu backgroundColor='white' shadow={2} w="auto" trigger={triggerProps => {
+							return <Pressable accessibilityLabel="More options menu" >
+								<IconButton   {...triggerProps} borderRadius='full' _icon={{
+									as: Ionicons,
+									name: "ellipsis-vertical",
+									color: 'white',
+									size: '5'
+								}} />
+							</Pressable>;
+						}}>
 							<Menu.Item>Profile</Menu.Item>
-							<Menu.Item>Logout</Menu.Item>
-							<Menu.Item>New Chat</Menu.Item>
+							<Menu.Item >New Chat</Menu.Item>
+							<Menu.Item>Keluar</Menu.Item>
 						</Menu>
 					</Stack>
 

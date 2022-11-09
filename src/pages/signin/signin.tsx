@@ -45,7 +45,7 @@ const SignIn = () => {
             md: "285"
           }}>
             <InputLeftAddon children={"+62"} />
-            <Input value={phoneNumber} onChangeText={text => setPhoneNumber(text)} keyboardType='numeric' w={{
+            <Input value={phoneNumber} onChangeText={(text: React.SetStateAction<string>) => setPhoneNumber(text)} keyboardType='numeric' w={{
 
               base: "70%",
               md: "100%"

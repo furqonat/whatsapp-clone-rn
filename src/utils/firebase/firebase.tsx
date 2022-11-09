@@ -34,7 +34,8 @@ const formatUser = (user: IUser) => {
         photoURL: user.photoURL,
         isIDCardVerified: user.isIDCardVerified,
         emailVerified: user.emailVerified,
-        phoneNumber: user.phoneNumber
+        phoneNumber: user.phoneNumber,
+        status: user.status
     }
 }
 
