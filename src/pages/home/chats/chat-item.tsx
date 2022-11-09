@@ -1,15 +1,15 @@
-import { Ionicons, MaterialIcons } from "@expo/vector-icons"
-import { useNavigation } from '@react-navigation/native'
-import type { NativeStackScreenProps } from '@react-navigation/native-stack'
-import { doc, getDoc } from "firebase/firestore"
-import { useChats, useStatus } from "hooks"
-import moment from 'moment'
-import { Box, IconButton, Image, Menu, Pressable, Stack, Text } from "native-base"
-import { RootStackParamList } from "pages/screens"
+import { useChats } from "hooks"
+import { Avatar, Box, IconButton, Image, Menu, Pressable, Stack, StatusBar, Text } from "native-base"
 import React, { useEffect, useState } from "react"
-import { ScrollView, View } from 'react-native'
-import { db, IChatItem, IChatList, useFirebase } from "utils"
+import { db, IChatList, useFirebase } from "utils"
+import { doc, getDoc } from "firebase/firestore"
+import { RootStackParamList } from "pages/screens"
+import type { NativeStackScreenProps } from '@react-navigation/native-stack'
+import moment from 'moment'
+import { AntDesign, Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { useNavigation } from '@react-navigation/native';
 import { ChatInput } from "./chat-input"
+import {useStatus} from 'hooks'
 
 
 type Props = NativeStackScreenProps<RootStackParamList, 'chatItem', 'Stack'>;
@@ -18,14 +18,13 @@ const ChatItem = ({
     route
 }: Props) => {
 
+    
+
     const navigation = useNavigation()
 
     const handleBack = () => {
         navigation.goBack()
     }
-
-    const viewRef = React.useRef<View>(null)
-    const scrollViewRef = React.useRef<ScrollView>(null)
 
     const { user } = useFirebase()
     const { messages } = useChats({
@@ -34,23 +33,8 @@ const ChatItem = ({
     })
 
     const [chatList, setChatList] = useState<IChatList | null>(null)
-    const { status } = useStatus({
-        phoneNumber: route?.params?.phoneNumber
-    })
-    const [receiver, setReceiver] = useState<IChatItem | null>(null)
-
-    useEffect(() => {
-        if (route?.params?.phoneNumber) {
-            const docRef = doc(db, 'users', route?.params?.phoneNumber)
-            getDoc(docRef).then((doc) => {
-                if (doc.exists()) {
-                    setReceiver(doc.data() as IChatItem)
-                } else {
-                    setReceiver(null)
-                }
-            })
-        }
-    }, [])
+    const [displayName, setDisplayName] = useState('')
+    const [status, setStatus] = useState<IChatList | null>(null)
 
     useEffect(() => {
         if (route?.params?.chatId) {
@@ -64,6 +48,7 @@ const ChatItem = ({
         }
     }, [route?.params?.chatId])
 
+   
 
     const getDisplayName = () => {
         if (user) {
@@ -80,10 +65,12 @@ const ChatItem = ({
                 return chatList.receiver.photoURL
             }
             return chatList?.receiver.photoURL
-        } else {
-            return ''
-        }
+        } else { return '' }
     }
+
+    useEffect(() => {
+
+    }, [])
 
 
     return (
@@ -93,9 +80,10 @@ const ChatItem = ({
             h={'100%'}
             direction={'column'}>
             <Stack
-                zIndex={1}
                 h={'60px'}
                 display={'flex'}
+
+
                 backgroundColor={'violet.800'}
                 alignItems={'center'}
                 justifyContent='space-between'
@@ -113,18 +101,18 @@ const ChatItem = ({
                             color: 'white',
                             size: '6'
                         }} />
-                    <Image
-                        h={10}
-                        w={10}
-                        borderRadius={'full'}
-                        alt={'pp'}
+                    <Image 
+                        h={10} 
+                        w={10} 
+                        borderRadius={'full'} 
+                        alt={'pp'} 
                         src={getDisplayPicture()} />
                     <Stack
                         space={1}
                         direction={'column'}
                     >
                         <Text color={'white'} bold={true} fontSize={15}>{getDisplayName()}</Text>
-                        <Text color={'white'}>{status === 'online' ? 'online' : status !== "" ? moment(status).fromNow() : ""}</Text>
+                        <Text color={'white'}>{status?.receiver.status ==='online'? 'online' : status?.receiver.status !== "" ? moment(status?.receiver.status).fromNow() : ""}</Text>
 
                     </Stack>
                 </Stack>
@@ -164,53 +152,40 @@ const ChatItem = ({
                 </Stack>
 
             </Stack>
-            <ScrollView
-                ref={scrollViewRef}>
-                <Stack
-                    display={'flex'}
-                    direction={'column-reverse'}
-                    space={2}
-                    p={2}
-                    flex={1}>
-                    <View onLayout={(event) => {
-                        scrollViewRef.current?.scrollTo({
-                            y: event.nativeEvent.layout.y,
-                            animated: true
-                        })
-                    }} />
-                    {
-                        messages?.map((item, index) => {
-                            return (
-                                <Stack
-                                    style={{
-                                        display: 'flex',
-
-                                    }}
-                                    key={index}>
-                                    <Box
-                                        backgroundColor={item?.sender?.phoneNumber === user?.phoneNumber ? 'green.500' : 'blue.500'}
-                                        px={5}
-                                        py={2}
-                                        borderRadius={10}
-                                        alignSelf={item?.sender?.phoneNumber === user?.phoneNumber ? "flex-end" : "flex-start"}>
-                                        <Text
-                                            color={'white'}>
-                                            {item.message?.text}
-                                        </Text>
-                                        <Text
-                                            color={'white'}>
-                                            {moment(item?.message?.createdAt)?.fromNow()}
-                                        </Text>
-                                    </Box>
-                                </Stack>
-                            )
-                        })
-                    }
-
-                </Stack>
-            </ScrollView>
+            <Stack
+                display={'flex'}
+                direction={'column'}
+                space={2}
+                p={2}
+                flex={1}>
+                {
+                    messages?.map((item, index) => {
+                        return (
+                            <Stack
+                                key={index}
+                                direction={'column'}>
+                                <Box
+                                    backgroundColor={item?.sender?.phoneNumber === user?.phoneNumber ? 'green.500' : 'blue.500'}
+                                    px={5}
+                                    py={2}
+                                    borderRadius={10}
+                                    alignSelf={item?.sender?.phoneNumber === user?.phoneNumber ? "flex-end" : "flex-start"}>
+                                    <Text
+                                        color={'white'}>
+                                        {item.message?.text}
+                                    </Text>
+                                    <Text
+                                        color={'white'}>
+                                        {moment(item?.message?.createdAt)?.fromNow()}
+                                    </Text>
+                                </Box>
+                            </Stack>
+                        )
+                    })
+                }
+            </Stack>
             {
-                <ChatInput user={receiver} id={route?.params?.chatId} />
+                <ChatInput />
             }
         </Stack>
 
