@@ -91,7 +91,7 @@ const ChatListItem = (props: {
                     }} />
                     <Stack>
                         <Text bold fontSize={15}>{getDisplayName()}</Text>
-                        <Text color='amber.400'>{item?.lastMessage?.text}</Text>
+                        <Text color='amber.400'>{item?.lastMessage?.text.replace(/(r\n|\n|\r)/gm," ").substring(0, 20)}...</Text>
                     </Stack>
 
                 </Stack>
