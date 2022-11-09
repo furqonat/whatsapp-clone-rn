@@ -159,7 +159,8 @@ const firebaseApp = () => {
                             if (res.status === 200) {
                                 console.log(res)
                                 await getIdToken(result.user, true)
-                                setUser(formatUser(result.user))
+                                assignUser(result.user)
+                                // setUser(formatUser(result.user))
                             }
                         })
                     })
@@ -181,7 +182,8 @@ const firebaseApp = () => {
                         }).then(async res => {
                             if (res.status === 200) {
                                 await getIdToken(result.user, true)
-                                setUser(formatUser(result.user))
+                                assignUser(result.user)
+                                // setUser(formatUser(result.user))
                             }
                         })
                     })
@@ -193,7 +195,8 @@ const firebaseApp = () => {
     const signIn = async (token: string) => {
         return signInWithCustomToken(auth, token)
             .then((result) => {
-                setUser(formatUser(result.user))
+                assignUser(result.user)
+                // setUser(formatUser(result.user))
             })
             .catch((error) => {
                 console.log(error)

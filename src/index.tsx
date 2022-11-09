@@ -18,7 +18,7 @@ const Main = () => {
                     <Stack.Screen options={{ headerShown: false }} name="form" component={Form} />
                     <Stack.Screen options={{ headerShown: false }} name="chatItem" initialParams={{
                         chatId: null,
-                        chatItem: null
+                        phoneNumber: null
                     }} component={ChatItem} />
                 </Stack.Navigator>
 

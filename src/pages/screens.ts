@@ -8,7 +8,7 @@ type RootStackParamList = {
     chat: undefined,
     chatItem: {
         chatId?: string | null,
-        chatItem?: IChatItem | null
+        phoneNumber?: string | null
     } | undefined,
     profile: undefined,
     settings: undefined,
