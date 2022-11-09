@@ -2,14 +2,15 @@
 import { Entypo, Fontisto, Ionicons } from "@expo/vector-icons";
 import { Box, IconButton, Stack } from 'native-base';
 import React, { FC, useState } from 'react';
-import { NativeSyntheticEvent, TextInput, TextInputKeyPressEventData } from 'react-native';
-import { IChatItem, sendMessage, useFirebase } from 'utils';
+import { TextInput } from 'react-native';
+import { IChatItem, IChatMessage, sendMessage, useFirebase } from 'utils';
 
 
 
 interface IChatInputProps {
     user?: IChatItem | null,
     id?: string | null,
+    onSend?: (event: IChatMessage) => void
 }
 
 const ChatInput: FC<IChatInputProps> = (props) => {
@@ -19,7 +20,33 @@ const ChatInput: FC<IChatInputProps> = (props) => {
 
     const handleOnPress = () => {
         if (message.trim().length > 0) {
+
             if (props?.user && user) {
+                props.onSend && props.onSend({
+                    message: {
+                        text: message,
+                        createdAt: new Date().toISOString(),
+                    },
+                    receiver: {
+                        phoneNumber: props.user?.phoneNumber!!,
+                        displayName: props.user?.displayName!!,
+                        uid: props.user?.uid!!,
+                    },
+                    sender: {
+                        phoneNumber: user?.phoneNumber!!,
+                        displayName: user?.displayName!!,
+                        uid: user?.uid!!,
+                    },
+
+                    id: props.id!!,
+                    time: new Date().toISOString(),
+                    type: "text",
+                    read: false,
+                    visibility: {
+                        [props.user.uid]: true,
+                        [user.uid]: true
+                    }
+                })
                 sendMessage({
                     message: message,
                     receiver: props.user,
@@ -27,6 +54,7 @@ const ChatInput: FC<IChatInputProps> = (props) => {
                     id: props.id!!
                 })
                 setMessage('')
+
             }
         }
 

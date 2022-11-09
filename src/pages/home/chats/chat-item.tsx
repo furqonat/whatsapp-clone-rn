@@ -8,7 +8,7 @@ import { Box, FlatList, IconButton, Image, Menu, Pressable, Stack, Text } from "
 import { RootStackParamList } from "pages/screens"
 import React, { useEffect, useState } from "react"
 import { ScrollView, View } from 'react-native'
-import { db, IChatItem, IChatList, useFirebase } from "utils"
+import { db, IChatItem, IChatList, IChatMessage, useFirebase } from "utils"
 import { ChatInput } from "./chat-input"
 
 
@@ -20,18 +20,18 @@ const ChatItem = ({
 
     const navigation = useNavigation()
 
+
     const handleBack = () => {
         navigation.goBack()
     }
-
-    const viewRef = React.useRef<View>(null)
-    const scrollViewRef = React.useRef<ScrollView>(null)
 
     const { user } = useFirebase()
     const { messages } = useChats({
         id: route?.params?.chatId,
         user: user
     })
+
+    const [message, setMessage] = useState<IChatMessage[]>([])
 
     const [chatList, setChatList] = useState<IChatList | null>(null)
     const { status } = useStatus({
@@ -51,6 +51,12 @@ const ChatItem = ({
             })
         }
     }, [])
+
+    useEffect(() => {
+        if (messages) {
+            setMessage(messages)
+        }
+    }, [messages])
 
     useEffect(() => {
         if (route?.params?.chatId) {
@@ -83,6 +89,10 @@ const ChatItem = ({
         } else {
             return ''
         }
+    }
+
+    const appendMessage = (chat: IChatMessage) => {
+        setMessage([...message, chat])
     }
 
 
@@ -166,21 +176,29 @@ const ChatItem = ({
             </Stack>
             <FlatList
                 inverted={true}
-                data={messages}
+                data={message}
                 renderItem={(item) => (
                     <Stack
                         m={1}
+                        direction={'column'}
                         key={item.index}>
                         <Box
+                            maxWidth={'70%'}
                             backgroundColor={item?.item?.sender?.phoneNumber === user?.phoneNumber ? 'green.500' : 'blue.500'}
                             px={5}
                             py={2}
                             borderRadius={10}
                             alignSelf={item?.item?.sender?.phoneNumber === user?.phoneNumber ? "flex-end" : "flex-start"}>
-                            <Text
-                                color={'white'}>
-                                {item.item.message?.text}
-                            </Text>
+                            {
+                                item.item.message?.text?.length > 200 ? (
+                                    <ReadMore text={item.item.message.text}/>
+                                ) : (
+                                    <Text
+                                        color={'white'}>
+                                        {item.item.message?.text}
+                                    </Text>
+                                )
+                            }
                             <Text
                                 color={'white'}>
                                 {moment(item?.item?.message?.createdAt)?.fromNow()}
@@ -190,10 +208,40 @@ const ChatItem = ({
                 )}>
             </FlatList>
             {
-                <ChatInput user={receiver} id={route?.params?.chatId} />
+                <ChatInput
+                    user={receiver}
+                    id={route?.params?.chatId}
+                    onSend={appendMessage}
+                />
             }
         </Stack>
 
+    )
+}
+
+const ReadMore = (props: { text: string }) => {
+    const [maxMessageLength, setMaxMessageLength] = useState(200)
+    const [expanded, setExpanded] = useState(false)
+
+    const handleReadMore = (length: number) => {
+        setMaxMessageLength(expanded ? 200 : length)
+        setExpanded(!expanded)
+    }
+
+    return (
+        <Text
+            color={'white'}>
+            {props.text?.slice(0, maxMessageLength)}...
+            <Text
+                bold={true}
+                onPress={() => {
+                    handleReadMore(props.text?.length)
+                }}>
+                {
+                    expanded ? 'Read less' : 'Read more'
+                }
+            </Text>
+        </Text>
     )
 }
 
