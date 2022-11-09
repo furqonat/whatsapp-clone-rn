@@ -4,7 +4,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack'
 import { doc, getDoc } from "firebase/firestore"
 import { useChats, useStatus } from "hooks"
 import moment from 'moment'
-import { Box, IconButton, Image, Menu, Pressable, Stack, Text } from "native-base"
+import { Box, FlatList, IconButton, Image, Menu, Pressable, Stack, Text } from "native-base"
 import { RootStackParamList } from "pages/screens"
 import React, { useEffect, useState } from "react"
 import { ScrollView, View } from 'react-native'
@@ -164,51 +164,31 @@ const ChatItem = ({
                 </Stack>
 
             </Stack>
-            <ScrollView
-                ref={scrollViewRef}>
-                <Stack
-                    display={'flex'}
-                    direction={'column-reverse'}
-                    space={2}
-                    p={2}
-                    flex={1}>
-                    <View onLayout={(event) => {
-                        scrollViewRef.current?.scrollTo({
-                            y: event.nativeEvent.layout.y,
-                            animated: true
-                        })
-                    }} />
-                    {
-                        messages?.map((item, index) => {
-                            return (
-                                <Stack
-                                    style={{
-                                        display: 'flex',
-
-                                    }}
-                                    key={index}>
-                                    <Box
-                                        backgroundColor={item?.sender?.phoneNumber === user?.phoneNumber ? 'green.500' : 'blue.500'}
-                                        px={5}
-                                        py={2}
-                                        borderRadius={10}
-                                        alignSelf={item?.sender?.phoneNumber === user?.phoneNumber ? "flex-end" : "flex-start"}>
-                                        <Text
-                                            color={'white'}>
-                                            {item.message?.text}
-                                        </Text>
-                                        <Text
-                                            color={'white'}>
-                                            {moment(item?.message?.createdAt)?.fromNow()}
-                                        </Text>
-                                    </Box>
-                                </Stack>
-                            )
-                        })
-                    }
-
-                </Stack>
-            </ScrollView>
+            <FlatList
+                inverted={true}
+                data={messages}
+                renderItem={(item) => (
+                    <Stack
+                        m={1}
+                        key={item.index}>
+                        <Box
+                            backgroundColor={item?.item?.sender?.phoneNumber === user?.phoneNumber ? 'green.500' : 'blue.500'}
+                            px={5}
+                            py={2}
+                            borderRadius={10}
+                            alignSelf={item?.item?.sender?.phoneNumber === user?.phoneNumber ? "flex-end" : "flex-start"}>
+                            <Text
+                                color={'white'}>
+                                {item.item.message?.text}
+                            </Text>
+                            <Text
+                                color={'white'}>
+                                {moment(item?.item?.message?.createdAt)?.fromNow()}
+                            </Text>
+                        </Box>
+                    </Stack>
+                )}>
+            </FlatList>
             {
                 <ChatInput user={receiver} id={route?.params?.chatId} />
             }
