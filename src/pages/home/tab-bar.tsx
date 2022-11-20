@@ -2,18 +2,19 @@ import { createMaterialBottomTabNavigator } from '@react-navigation/material-bot
 import { Text, View } from 'native-base';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { Chats } from './chats';
+import { Profile } from './profile';
 
 const Tab = createMaterialBottomTabNavigator();
 
 
 
-function Profile() {
-	return (
-		<View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-			<Text>Profile!</Text>
-		</View>
-	);
-}
+// function Profile() {
+// 	return (
+// 		<View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+// 			<Text>Profile!</Text>
+// 		</View>
+// 	);
+// }
 function Panggilan() {
 	return (
 		<View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>

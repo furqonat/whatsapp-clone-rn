@@ -1,17 +1,36 @@
 
 import { Ionicons } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
+import { StackNavigationProp } from "@react-navigation/stack";
 import { useChats } from "hooks";
 import { Icon, IconButton, Menu, NativeBaseProvider, Pressable, Stack, StatusBar, Text } from 'native-base';
+import { RootStackParamList } from "pages/screens";
 import React from 'react';
 import { Provider } from "react-native-paper";
 import { useFirebase } from "utils";
 import { ChatList } from "./chat-list";
 
-const Chats = () => {
+type signInScreenProp = StackNavigationProp<RootStackParamList, 'signin'>;
+type qrScreenProp = StackNavigationProp<RootStackParamList, 'qr'>;
 
+
+const Chats = () => {
+	const navigationSignin = useNavigation<signInScreenProp>()
+	const navigationQr = useNavigation<qrScreenProp>()
 	const { user } = useFirebase()
+	const {logout} = useFirebase()
 
 	const { chatList } = useChats({ user: user })
+
+	const handleLogOut = () => {
+		logout().then((_) => {
+            navigationSignin.navigate('signin')
+        })
+	}
+
+	const handleQr = () => {
+		navigationQr.navigate('qr')
+	}
 
 	return (
 		<Stack
@@ -45,7 +64,9 @@ const Chats = () => {
 						justifyItems={'center'}
 						direction={'row'}
 						space={1}>
-						<IconButton borderRadius='full' _icon={{
+						<IconButton 
+							onPress={handleQr}
+							borderRadius='full' _icon={{
 							as: Ionicons,
 							name: "scan-outline",
 							color: 'white',
@@ -63,7 +84,7 @@ const Chats = () => {
 						}}>
 							<Menu.Item>Profile</Menu.Item>
 							<Menu.Item >New Chat</Menu.Item>
-							<Menu.Item>Keluar</Menu.Item>
+							<Menu.Item onPress={handleLogOut} >Keluar</Menu.Item>
 						</Menu>
 					</Stack>
 

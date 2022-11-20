@@ -90,8 +90,25 @@ const ChatListItem = (props: {
                         uri: `${getDisplayPicture()}`
                     }} />
                     <Stack>
-                        <Text bold fontSize={15}>{getDisplayName()}</Text>
-                        <Text color='amber.400'>{item?.lastMessage?.text.replace(/(r\n|\n|\r)/gm," ").substring(0, 20)}...</Text>
+                        <Text
+                            bold
+                            fontSize={15}>
+                            {getDisplayName()}
+                        </Text>
+                        {
+                            item?.lastMessage?.text &&
+                            item?.lastMessage?.text?.replace(/(\r\n|\n|\r)/gm, " ").length > 20 ?
+                                <Text
+                                    color={'amber.400'}>
+                                    {item?.lastMessage?.text?.replace(/(\r\n|\n|\r)/gm, " ").substring(0, 20)}...
+                                </Text>
+                                :
+                                <Text
+                                    color={'amber.400'}>
+                                    {item?.lastMessage?.text?.replace(/(\r\n|\n|\r)/gm, " ")}
+                                </Text>
+                        }
+
                     </Stack>
 
                 </Stack>

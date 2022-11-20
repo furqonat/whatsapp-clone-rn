@@ -12,6 +12,7 @@ type RootStackParamList = {
     } | undefined,
     profile: undefined,
     settings: undefined,
+    qr:undefined,
 }
 
 export type { RootStackParamList }
