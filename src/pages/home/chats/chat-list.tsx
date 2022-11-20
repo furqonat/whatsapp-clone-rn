@@ -1,6 +1,7 @@
 import { useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { doc, getDoc } from "firebase/firestore";
+import { useAvatar } from "hooks";
 import moment from "moment";
 import { Avatar, Box, Menu, ScrollView, Stack, Text } from "native-base"
 import { RootStackParamList } from "pages/screens";
@@ -36,23 +37,18 @@ const ChatListItem = (props: {
     const { item } = props
     const { user } = useFirebase()
 
+    const { avatar } = useAvatar({
+        phoneNumber: user?.uid === item.owner ? item.receiver?.phoneNumber : item.ownerPhoneNumber
+    })
+
     const navigation = useNavigation<ChatItem>()
 
     const getDisplayName = () => {
         if (user) {
             if (item.owner === user.uid) {
-                return item.receiver.displayName
+                return item.receiver.phoneNumber
             }
             return item.ownerPhoneNumber
-        }
-    }
-
-    const getDisplayPicture = () => {
-        if (user) {
-            if (item.owner === user.uid) {
-                return item.receiver.photoURL
-            }
-            return item.receiver.photoURL
         }
     }
 
@@ -87,7 +83,7 @@ const ChatListItem = (props: {
                     alignItems='center'
                     space={10} >
                     <Avatar left={5} bg="green.500" source={{
-                        uri: `${getDisplayPicture()}`
+                        uri: `${avatar}`
                     }} />
                     <Stack>
                         <Text

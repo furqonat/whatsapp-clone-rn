@@ -2,9 +2,9 @@ import { Ionicons, MaterialIcons } from "@expo/vector-icons"
 import { useNavigation } from '@react-navigation/native'
 import type { NativeStackScreenProps } from '@react-navigation/native-stack'
 import { doc, getDoc } from "firebase/firestore"
-import { useChats, useStatus } from "hooks"
+import { useAvatar, useChats, useStatus } from "hooks"
 import moment from 'moment'
-import { Box, FlatList, IconButton, Image, Menu, Pressable, Stack, Text} from "native-base"
+import { Box, FlatList, IconButton, Image, Menu, Pressable, Stack, Text } from "native-base"
 import { RootStackParamList } from "pages/screens"
 import React, { useEffect, useState } from "react"
 import { TouchableOpacity } from "react-native"
@@ -37,6 +37,9 @@ const ChatItem = ({
     const [chatList, setChatList] = useState<IChatList | null>(null)
     const { status } = useStatus({
         phoneNumber: route?.params?.phoneNumber
+    })
+    const { avatar } = useAvatar({
+        phoneNumber: user?.uid === chatList?.owner ? chatList?.receiver?.phoneNumber : chatList?.ownerPhoneNumber
     })
     const [receiver, setReceiver] = useState<IChatItem | null>(null)
 
@@ -75,20 +78,9 @@ const ChatItem = ({
     const getDisplayName = () => {
         if (user) {
             if (chatList?.owner === user.uid) {
-                return chatList?.receiver.displayName
+                return chatList?.receiver.phoneNumber
             }
             return chatList?.ownerPhoneNumber
-        }
-    }
-
-    const getDisplayPicture = () => {
-        if (user) {
-            if (chatList?.owner === user.uid) {
-                return chatList.receiver.photoURL
-            }
-            return chatList?.receiver.photoURL
-        } else {
-            return ''
         }
     }
 
@@ -131,7 +123,7 @@ const ChatItem = ({
                         w={10}
                         borderRadius={'full'}
                         alt={'pp'}
-                        src={getDisplayPicture()} />
+                        src={avatar} />
                     <Stack
                         space={1}
                         direction={'column'}
@@ -182,33 +174,33 @@ const ChatItem = ({
                 data={message}
                 renderItem={(item) => (
                     <Stack
-                    m={1}
-                    direction={'column'}
-                    key={item.index}>
+                        m={1}
+                        direction={'column'}
+                        key={item.index}>
                         <Box
-                        
+
                             maxWidth={'70%'}
                             backgroundColor={item?.item?.sender?.phoneNumber === user?.phoneNumber ? 'green.500' : 'blue.500'}
                             px={5}
                             py={2}
                             borderRadius={10}
                             alignSelf={item?.item?.sender?.phoneNumber === user?.phoneNumber ? "flex-end" : "flex-start"}>
-                                <TouchableOpacity onLongPress={() => alert('press')}>
-                            {
-                                item.item.message?.text?.length > 200 ? (
-                                    <ReadMore text={item.item.message.text}/>
-                                ) : (
-                                    <Text
-                                        color={'white'}>
-                                        {item.item.message?.text}
-                                    </Text>
-                                )
-                            }
-                            <Text
-                                color={'amber.200'}>
-                                {moment(item?.item?.message?.createdAt)?.fromNow()}
-                            </Text>
-                        </TouchableOpacity>
+                            <TouchableOpacity onLongPress={() => alert('press')}>
+                                {
+                                    item.item.message?.text?.length > 200 ? (
+                                        <ReadMore text={item.item.message.text} />
+                                    ) : (
+                                        <Text
+                                            color={'white'}>
+                                            {item.item.message?.text}
+                                        </Text>
+                                    )
+                                }
+                                <Text
+                                    color={'amber.200'}>
+                                    {moment(item?.item?.message?.createdAt)?.fromNow()}
+                                </Text>
+                            </TouchableOpacity>
                         </Box>
                     </Stack>
                 )}>
@@ -252,3 +244,4 @@ const ReadMore = (props: { text: string }) => {
 }
 
 export { ChatItem }
+

@@ -1,10 +1,10 @@
-import { BACKEND_URL, SALT_KEY } from '@env';
-import axios from 'axios';
-import { BarCodeScanner } from 'expo-barcode-scanner';
-import { encrypt } from 'lib';
-import React, { useEffect, useState } from 'react';
-import { Button, StyleSheet, Text, View } from 'react-native';
-import { useFirebase } from 'utils';
+import { BACKEND_URL, SALT_KEY } from '@env'
+import axios from 'axios'
+import { BarCodeScanner } from 'expo-barcode-scanner'
+import { encrypt } from 'lib'
+import React, { useEffect, useState } from 'react'
+import { Button, StyleSheet, Text, View } from 'react-native'
+import { useFirebase } from 'utils'
 
 
 const QrCamera = () => {
@@ -63,4 +63,4 @@ const styles = StyleSheet.create({
 		flexDirection: 'column',
 		justifyContent: 'center',
 	},
-});
+})
