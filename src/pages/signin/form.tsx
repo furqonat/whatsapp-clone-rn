@@ -90,12 +90,11 @@ function Form() {
 					mt="20"
 					size="40">
 					<Image
-						alt={'photo profile'}
-						size={150}
+						alt={' '}
+						size={'md'}
+		
 						borderRadius={100}
-						source={{
-							uri: `${photo}`
-						}} />
+						src={`${photo}`} />
 					<IconButton
 						position={"absolute"}
 						right={"3"}

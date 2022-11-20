@@ -4,12 +4,13 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack'
 import { doc, getDoc } from "firebase/firestore"
 import { useChats, useStatus } from "hooks"
 import moment from 'moment'
-import { Box, FlatList, IconButton, Image, Menu, Pressable, Stack, Text } from "native-base"
+import { Box, FlatList, IconButton, Image, Menu, Pressable, Stack, Text} from "native-base"
 import { RootStackParamList } from "pages/screens"
 import React, { useEffect, useState } from "react"
-import { ScrollView, View } from 'react-native'
+import { TouchableOpacity } from "react-native"
 import { db, IChatItem, IChatList, IChatMessage, useFirebase } from "utils"
 import { ChatInput } from "./chat-input"
+
 
 
 type Props = NativeStackScreenProps<RootStackParamList, 'chatItem', 'Stack'>;
@@ -96,6 +97,8 @@ const ChatItem = ({
     }
 
 
+
+
     return (
 
 
@@ -179,16 +182,18 @@ const ChatItem = ({
                 data={message}
                 renderItem={(item) => (
                     <Stack
-                        m={1}
-                        direction={'column'}
-                        key={item.index}>
+                    m={1}
+                    direction={'column'}
+                    key={item.index}>
                         <Box
+                        
                             maxWidth={'70%'}
                             backgroundColor={item?.item?.sender?.phoneNumber === user?.phoneNumber ? 'green.500' : 'blue.500'}
                             px={5}
                             py={2}
                             borderRadius={10}
                             alignSelf={item?.item?.sender?.phoneNumber === user?.phoneNumber ? "flex-end" : "flex-start"}>
+                                <TouchableOpacity onLongPress={() => alert('press')}>
                             {
                                 item.item.message?.text?.length > 200 ? (
                                     <ReadMore text={item.item.message.text}/>
@@ -200,9 +205,10 @@ const ChatItem = ({
                                 )
                             }
                             <Text
-                                color={'white'}>
+                                color={'amber.200'}>
                                 {moment(item?.item?.message?.createdAt)?.fromNow()}
                             </Text>
+                        </TouchableOpacity>
                         </Box>
                     </Stack>
                 )}>

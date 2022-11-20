@@ -99,12 +99,12 @@ const ChatListItem = (props: {
                             item?.lastMessage?.text &&
                             item?.lastMessage?.text?.replace(/(\r\n|\n|\r)/gm, " ").length > 20 ?
                                 <Text
-                                    color={'gray.500'}>
+                                    color={'amber.400'}>
                                     {item?.lastMessage?.text?.replace(/(\r\n|\n|\r)/gm, " ").substring(0, 20)}...
                                 </Text>
                                 :
                                 <Text
-                                    color={'gray.500'}>
+                                    color={'amber.400'}>
                                     {item?.lastMessage?.text?.replace(/(\r\n|\n|\r)/gm, " ")}
                                 </Text>
                         }

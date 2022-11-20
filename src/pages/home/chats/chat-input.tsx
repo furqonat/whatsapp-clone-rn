@@ -1,9 +1,10 @@
 
 import { Entypo, Fontisto, Ionicons } from "@expo/vector-icons";
-import { Box, IconButton, Stack } from 'native-base';
+import { Box, IconButton, Stack, Image } from 'native-base';
 import React, { FC, useState } from 'react';
 import { TextInput } from 'react-native';
 import { IChatItem, IChatMessage, sendMessage, useFirebase } from 'utils';
+import * as ImagePicker from "expo-image-picker"
 
 
 
@@ -60,6 +61,22 @@ const ChatInput: FC<IChatInputProps> = (props) => {
 
     }
 
+    const [image, setImage] = useState('');
+
+    const handleOnpressImage = async () => {
+        let result = await ImagePicker.launchImageLibraryAsync({
+          mediaTypes: ImagePicker.MediaTypeOptions.All,
+          allowsEditing: true,
+          aspect: [4, 3],
+          quality: 1,
+        });
+    
+        if (!result.cancelled) {
+          setImage(result.uri);
+        }
+      };
+      console.log(image)
+
     return (
         <Stack
             space={3}
@@ -93,6 +110,7 @@ const ChatInput: FC<IChatInputProps> = (props) => {
                     />
                 </Box>
                 <IconButton
+                onPress={handleOnpressImage}
                     borderRadius={'full'}
                     _icon={{
                         as: Entypo,
@@ -121,7 +139,9 @@ const ChatInput: FC<IChatInputProps> = (props) => {
                                 color: '#5b21b6',
                                 size: '6'
                             }} />
+                        
                 }
+                {image && <Image src={`${image}`} size={'sm'} alt='pp' />}
             </Stack>
 
         </Stack>

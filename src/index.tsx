@@ -1,6 +1,6 @@
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
-import { ChatItem, Form, MyTabs, Otp, SignIn } from "pages";
+import { ChatItem, Form, MyTabs, Otp, QrCamera, SignIn } from "pages";
 import { RootStackParamList } from "pages/screens";
 import { FirebaseProvider } from 'utils';
 
@@ -13,6 +13,7 @@ const Main = () => {
             <NavigationContainer>
                 <Stack.Navigator >
                     <Stack.Screen options={{ headerShown: false }} name="tabbar" component={MyTabs} />
+                    <Stack.Screen options={{ headerShown: false }} name="qr" component={QrCamera} />
                     <Stack.Screen options={{ headerShown: false }} name="signin" component={SignIn} />
                     <Stack.Screen options={{ headerShown: false }} name="otp" component={Otp} />
                     <Stack.Screen options={{ headerShown: false }} name="form" component={Form} />
