@@ -1,3 +1,4 @@
-export { Chats } from "./chats";
-export { MyTabs } from "./tab-bar"
-export { ChatItem } from "./chats";
+export { Chats } from './chats'
+export { MyTabs } from './tab-bar'
+export { ChatItem } from './chats'
+export { Transaction } from './transaction'

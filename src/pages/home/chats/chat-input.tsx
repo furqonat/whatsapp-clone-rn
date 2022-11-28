@@ -1,29 +1,35 @@
-
-import { Entypo, Fontisto, Ionicons } from "@expo/vector-icons";
-import { Box, IconButton, Stack, Image } from 'native-base';
-import React, { FC, useState } from 'react';
-import { TextInput } from 'react-native';
-import { IChatItem, IChatMessage, sendMessage, useFirebase } from 'utils';
-import * as ImagePicker from "expo-image-picker"
-
-
+import { Entypo, Ionicons } from '@expo/vector-icons'
+import * as ImagePicker from 'expo-image-picker'
+import { Box, IconButton, Stack } from 'native-base'
+import React, { FC, useState } from 'react'
+import { TextInput } from 'react-native'
+import { getStorage, ref, uploadBytesResumable, getDownloadURL } from '@firebase/storage'
+import { IChatItem, IChatMessage, sendMessage, useFirebase } from 'utils'
 
 interface IChatInputProps {
-    user?: IChatItem | null,
-    id?: string | null,
+    user?: IChatItem | null
+    id?: string | null
     onSend?: (event: IChatMessage) => void
 }
 
-const ChatInput: FC<IChatInputProps> = (props) => {
+const uuidv4 = () => {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+        var r = (Math.random() * 16) | 0,
+            v = c == 'x' ? r : (r & 0x3) | 0x8
+        return v.toString(16)
+    })
+}
+
+const ChatInput: FC<IChatInputProps> = props => {
+
     const [message, setMessage] = useState('')
 
     const { user } = useFirebase()
 
-    const handleOnPress = () => {
-        if (message.trim().length > 0) {
-
-            if (props?.user && user) {
-                props.onSend && props.onSend({
+    const onSendCallback = (type: string) => {
+        if (props.user && user) {
+            props.onSend &&
+                props.onSend({
                     message: {
                         text: message,
                         createdAt: new Date().toISOString(),
@@ -41,47 +47,80 @@ const ChatInput: FC<IChatInputProps> = (props) => {
 
                     id: props.id!!,
                     time: new Date().toISOString(),
-                    type: "text",
+                    type: type,
                     read: false,
                     visibility: {
                         [props.user.uid]: true,
-                        [user.uid]: true
-                    }
+                        [user.uid]: true,
+                    },
                 })
+        }
+    }
+
+    const handleOnPress = async () => {
+        if (message.trim().length > 0) {
+            if (props?.user && user) {
+                onSendCallback('text')
                 sendMessage({
                     message: message,
                     receiver: props.user,
                     user: user,
-                    id: props.id!!
+                    id: props.id!!,
+                    lastMessageType: message,
+                    type: 'text'
                 })
                 setMessage('')
-
             }
         }
-
     }
-
-    const [image, setImage] = useState('');
 
     const handleOnpressImage = async () => {
         let result = await ImagePicker.launchImageLibraryAsync({
-          mediaTypes: ImagePicker.MediaTypeOptions.All,
-          allowsEditing: true,
-          aspect: [4, 3],
-          quality: 1,
-        });
-    
+            mediaTypes: ImagePicker.MediaTypeOptions.All,
+            allowsEditing: false,
+            aspect: [4, 3],
+            quality: 1,
+        })
         if (!result.cancelled) {
-          setImage(result.uri);
+            const blob = await fetch(result.uri)
+            console.log(
+                JSON.stringify(blob.blob())
+            )
+
+            await fetch(result.uri)
+                .then(response => response.blob())
+                .then(blob => {
+                    const storage = getStorage()
+                    const imageType = blob?.type
+                    const imageRef = ref(storage, `${user?.phoneNumber}/${props.id}/${uuidv4()}.${imageType}`)
+                    const task = uploadBytesResumable(imageRef, blob)
+                    task.on('state_changed', snapshot => {
+                    }, error => {
+                        console.log(error, 'this is error')
+                    }, () => {
+                        console.log('done')
+                        getDownloadURL(task.snapshot.ref).then(url => {
+                            onSendCallback('image')
+                            sendMessage({
+                                message: url,
+                                receiver: props.user!!,
+                                user: user!!,
+                                id: props.id!!,
+                                type: 'image',
+                                lastMessageType: 'image',
+                            })
+                            console.log(url)
+                        })
+                    })
+                })
         }
-      };
-      console.log(image)
+    }
 
     return (
         <Stack
             space={3}
             mb={2}
-            direction={"row"}
+            direction={'row'}
             justifyContent={'center'}>
             <Stack
                 w={'100%'}
@@ -90,14 +129,14 @@ const ChatInput: FC<IChatInputProps> = (props) => {
                 borderRadius={'18'}
                 maxHeight={'32'}
                 justifyContent={'center'}
-                direction={"row"}>
+                direction={'row'}>
                 <Box
                     flex={1}
                     justifyContent={'center'}
                     px={4}
                     background={'white'}
                     borderRadius={'18'}
-                    maxHeight={'32'} >
+                    maxHeight={'32'}>
                     <TextInput
                         value={message}
                         autoFocus={true}
@@ -110,44 +149,30 @@ const ChatInput: FC<IChatInputProps> = (props) => {
                     />
                 </Box>
                 <IconButton
-                onPress={handleOnpressImage}
+                    onPress={handleOnpressImage}
                     borderRadius={'full'}
                     _icon={{
                         as: Entypo,
-                        name: "camera",
+                        name: 'camera',
                         color: '#5b21b6',
-                        size: '5'
-                    }} />
+                        size: '5',
+                    }}
+                />
 
-                {
-                    message.length > 0 ? (
-                        <IconButton
-                            onPress={handleOnPress}
-                            borderRadius={'full'}
-                            _icon={{
-                                as: Ionicons,
-                                name: "send",
-                                color: '#5b21b6',
-                                size: '6'
-                            }} />
-                    ) :
-                        <IconButton
-                            borderRadius={'full'}
-                            _icon={{
-                                as: Fontisto,
-                                name: "mic",
-                                color: '#5b21b6',
-                                size: '6'
-                            }} />
-                        
-                }
-                {image && <Image src={`${image}`} size={'sm'} alt='pp' />}
+                <IconButton
+                    onPress={handleOnPress}
+                    borderRadius={'full'}
+                    _icon={{
+                        as: Ionicons,
+                        name: 'send',
+                        color: '#5b21b6',
+                        size: '6',
+                    }}
+                />
             </Stack>
-
         </Stack>
     )
 }
 
-export { ChatInput };
-
+export { ChatInput }
 

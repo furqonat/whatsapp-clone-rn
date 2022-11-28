@@ -12,10 +12,6 @@ const sendMessage = (props: {
     lastMessageType?: string
 }): boolean => {
 
-    const {
-        type = "text",
-        lastMessageType = "text",
-    } = props
     const docRef = doc(db, 'chats', props.id)
     setDoc(docRef, {
         id: props.id,
@@ -37,7 +33,7 @@ const sendMessage = (props: {
         const collectionRef = collection(db, 'chats', props.id, 'messages')
         addDoc(collectionRef, {
             time: new Date().toLocaleTimeString(),
-            type: type, // TODO: type accept text, image, audio file
+            type: props.type,
             read: false,
             message: {
                 text: props.message,
@@ -60,7 +56,7 @@ const sendMessage = (props: {
         }).then(() => {
             updateDoc(docRef, {
                 lastMessage: {
-                    text: props.message, // TODO: add last message type like image, video, audio, etc
+                    text: props.lastMessageType,
                     createdAt: new Date().toISOString(),
                 },
             }).then(() => {
