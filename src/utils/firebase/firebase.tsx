@@ -98,7 +98,7 @@ const firebaseApp = () => {
                         resolve()
                     })
                 }).catch(error => {
-                    console.log(error)
+                    
                     reject(error)
                 })
             } else {
@@ -119,7 +119,7 @@ const firebaseApp = () => {
                         resolve()
                     })
                 }).catch(error => {
-                    console.log(error)
+                    
                     reject(error)
                 })
             }
@@ -174,7 +174,7 @@ const firebaseApp = () => {
 
     const verifyCode = async (code: string, provider: 'phone' | 'whatsapp') => {
         if (provider === 'phone') {
-            console.log('phone ', `${process.env.SERVER_URL}/claims`)
+            
             if (confirmationResult) {
                 return new Promise<void>((resolve, reject) => {
                     confirmationResult
@@ -207,7 +207,7 @@ const firebaseApp = () => {
                         phoneNumber: phone,
                     })
                     if (wa.status === 200) {
-                        console.log(`${Constants.SERVER_URL}/claims`)
+                        
                         signInWithCustomToken(auth, wa.data.token).then(async result => {
                             assignUser(result.user)
                             axios
@@ -241,7 +241,7 @@ const firebaseApp = () => {
                 // setUser(formatUser(result.user))
             })
             .catch(error => {
-                console.log(error)
+                
             })
     }
 

@@ -1,26 +1,12 @@
 import { createMaterialBottomTabNavigator } from '@react-navigation/material-bottom-tabs'
 import { Text, View } from 'native-base'
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons'
+import { Calls } from './calls'
 import { Chats } from './chats'
 import { Profile } from './profile'
 import { Transaction } from './transaction'
 
 const Tab = createMaterialBottomTabNavigator()
-
-// function Profile() {
-// 	return (
-// 		<View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-// 			<Text>Profile!</Text>
-// 		</View>
-// 	);
-// }
-function Panggilan() {
-    return (
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-            <Text>Panggilan</Text>
-        </View>
-    )
-}
 
 
 function MyTabs() {
@@ -59,7 +45,7 @@ function MyTabs() {
             />
             <Tab.Screen
                 name='Panggilan'
-                component={Panggilan}
+                component={Calls}
                 options={{
                     tabBarLabel: 'Panggilan',
                     tabBarIcon: ({ color }) => (

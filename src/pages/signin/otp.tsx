@@ -56,7 +56,7 @@ const Otp = () => {
             verifyCode(value, 'phone').then(_n => {
                 navigation.navigate('form')
             }).catch(_error => {
-                console.log('error firebase', _error)
+                
                 toast.show({
                     title: 'Error',
                     description: 'Invalid code',

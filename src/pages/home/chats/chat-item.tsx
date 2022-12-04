@@ -1,23 +1,26 @@
 import { Ionicons, MaterialIcons } from '@expo/vector-icons'
 import { useNavigation } from '@react-navigation/native'
 import type { NativeStackScreenProps } from '@react-navigation/native-stack'
+import { StackNavigationProp } from '@react-navigation/stack'
 import { doc, getDoc } from 'firebase/firestore'
 import { useAvatar, useChats, useContact, useStatus } from 'hooks'
 import moment from 'moment'
-import { Box, Button, FlatList, IconButton, Image, Input, Menu, Modal, Pressable, Stack, Text, TextField, useToast } from 'native-base'
+import { Box, Button, IconButton, Image, Input, Menu, Modal, Pressable, Stack, Text, useToast } from 'native-base'
 import { RootStackParamList } from 'pages/screens'
 import React, { useEffect, useState } from 'react'
-import { db, IChatItem, IChatList, IChatMessage, useFirebase } from 'utils'
+import { FlatList } from 'react-native'
+import ImageModal from 'react-native-image-modal'
+import { db, IChatItem, IChatList, IChatMessage, IContact, useFirebase } from 'utils'
 import { ChatInput } from './chat-input'
-import ImageModal from 'react-native-image-modal';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'chatItem', 'Stack'>
+type TransactionScreenProp = StackNavigationProp<RootStackParamList, 'new_transaction'>
 
 const ChatItem = ({ route }: Props) => {
 
     const toast = useToast()
     const toastId = 'save-contact'
-    const navigation = useNavigation()
+    const navigation = useNavigation<TransactionScreenProp>()
 
     const handleBack = () => {
         navigation.goBack()
@@ -120,6 +123,19 @@ const ChatItem = ({ route }: Props) => {
         setMessage([chat, ...message])
     }
 
+    const newTransaction = (item: IContact) => {
+        if (!receiver?.isIDCardVerified) {
+            alert('Akun ini belum terverifikasi')
+        } else {
+            navigation.navigate('new_transaction', { contact: item })
+        }
+    }
+
+    const handleUnsopported = () => {
+        alert('Untuk saat ini fitur ini hanya tersedia untuk desktop web. silahkan akses melalui browser desktop anda untuk menggunakan fitur ini')
+    }
+
+
     return (
         <Stack
             h={'100%'}
@@ -173,6 +189,7 @@ const ChatItem = ({ route }: Props) => {
                     direction={'row'}
                     alignItems={'center'}>
                     <IconButton
+                        onPress={handleUnsopported}
                         borderRadius={'full'}
                         _icon={{
                             as: Ionicons,
@@ -182,6 +199,7 @@ const ChatItem = ({ route }: Props) => {
                         }}
                     />
                     <IconButton
+                        onPress={handleUnsopported}
                         borderRadius='full'
                         _icon={{
                             as: MaterialIcons,
@@ -219,7 +237,7 @@ const ChatItem = ({ route }: Props) => {
                             ) : null
                         }
                         <Menu.Item
-                            disabled={!receiver?.isIDCardVerified}>
+                            onPress={() => newTransaction(contact!!)}>
                             <Text>
                                 Buat Transaksi
                             </Text>
@@ -357,3 +375,4 @@ const ReadMore = (props: { text: string }) => {
 }
 
 export { ChatItem }
+

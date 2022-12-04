@@ -1,7 +1,7 @@
 import { NavigationContainer } from '@react-navigation/native'
 import { createStackNavigator } from '@react-navigation/stack'
 import { VStack, Image } from 'native-base'
-import { ChatItem, Form, MyTabs, Otp, QrCamera, SignIn } from 'pages'
+import { ChatItem, Form, MyTabs, NewTransaction, Otp, QrCamera, SignIn, Transaction } from 'pages'
 import { RootStackParamList } from 'pages/screens'
 import { useEffect, useState } from 'react'
 import { useFirebase } from 'utils'
@@ -71,6 +71,13 @@ const Main = () => {
                     }}
                     component={ChatItem}
                 />
+                <Stack.Screen
+                    options={{ headerShown: false }}
+                    name="new_transaction"
+                    initialParams={{
+                        contact: null,
+                    }}
+                    component={NewTransaction}/>
             </Stack.Navigator>
         </NavigationContainer>
     )

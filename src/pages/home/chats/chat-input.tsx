@@ -83,9 +83,6 @@ const ChatInput: FC<IChatInputProps> = props => {
         })
         if (!result.cancelled) {
             const blob = await fetch(result.uri)
-            console.log(
-                JSON.stringify(blob.blob())
-            )
 
             await fetch(result.uri)
                 .then(response => response.blob())
@@ -96,9 +93,9 @@ const ChatInput: FC<IChatInputProps> = props => {
                     const task = uploadBytesResumable(imageRef, blob)
                     task.on('state_changed', snapshot => {
                     }, error => {
-                        console.log(error, 'this is error')
+                        
                     }, () => {
-                        console.log('done')
+                        
                         getDownloadURL(task.snapshot.ref).then(url => {
                             onSendCallback('image')
                             sendMessage({
@@ -109,7 +106,7 @@ const ChatInput: FC<IChatInputProps> = props => {
                                 type: 'image',
                                 lastMessageType: 'image',
                             })
-                            console.log(url)
+                            
                         })
                     })
                 })

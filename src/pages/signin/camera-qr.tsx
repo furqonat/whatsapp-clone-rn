@@ -26,7 +26,7 @@ const QrCamera = () => {
             phoneNumber: user?.phoneNumber,
             verificationId: data.data,
         }).toString()
-        console.log(data.data)
+        
         axios
             .post(`${BACKEND_URL}api/v1/qr-code/`, {
                 encrypted: hash(value),
@@ -35,7 +35,7 @@ const QrCamera = () => {
                 setScanned(true)
             })
             .catch(err => {
-                console.log(err)
+                
             })
     }
 

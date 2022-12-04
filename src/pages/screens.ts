@@ -1,3 +1,5 @@
+import { IContact } from "utils"
+
 type RootStackParamList = {
     signin: undefined
     otp: undefined
@@ -12,7 +14,11 @@ type RootStackParamList = {
         | undefined
     profile: undefined
     settings: undefined
-    qr: undefined
+    qr: undefined,
+    transaction: undefined,
+    new_transaction: {
+        contact: IContact | null
+    },
 }
 
 export type { RootStackParamList }

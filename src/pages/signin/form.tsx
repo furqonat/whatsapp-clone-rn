@@ -24,18 +24,18 @@ function Form() {
 
     const handlePress = () => {
         if (displayName?.length > 0) {
-            console.log('handlePress 121', user?.phoneNumber)
+            
             const dbRef = doc(db, 'users', `${user?.phoneNumber}`)
             
             updateDoc(dbRef, {
                 displayName,
             })
                 .then(() => {
-                    console.log('success')
+                    
                     navigation.navigate('tabbar')
                 })
                 .catch(error => {
-                    console.log('error', error)
+                    
                     toast.show({
                         title: error.message,
                     })
