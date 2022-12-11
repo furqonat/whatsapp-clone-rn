@@ -1,0 +1,62 @@
+{
+    "expo": {
+        "name": "Rekberin",
+        "slug": "native-in",
+        "version": "1.0.0",
+        "orientation": "portrait",
+        "icon": "./src/assets/icon.png",
+        "userInterfaceStyle": "light",
+        "splash": {
+            "image": "./src/assets/adaptive-icon.png",
+            "resizeMode": "contain",
+            "backgroundColor": "#ffffff"
+        },
+        "updates": {
+            "fallbackToCacheTimeout": 0
+        },
+        "assetBundlePatterns": ["**/*"],
+        "ios": {
+            "supportsTablet": true
+        },
+        "android": {
+            "adaptiveIcon": {
+                "foregroundImage": "./src/assets/adaptive-icon.png",
+                "backgroundColor": "#FFFFFF"
+            },
+            "permissions": [
+                "CAMERA",
+                "READ_EXTERNAL_STORAGE",
+                "WRITE_EXTERNAL_STORAGE",
+                "RECORD_AUDIO",
+                "INTERNET",
+                "android.permission.RECORD_AUDIO",
+                "android.permission.CAMERA",
+                "android.permission.READ_EXTERNAL_STORAGE",
+                "android.permission.WRITE_EXTERNAL_STORAGE",
+                "android.permission.INTERNET",
+                "android.permission.ACCESS_NETWORK_STATE"
+            ],
+            "package": "com.rekberindo.app"
+        },
+        "web": {
+            "favicon": "./src/assets/favicon.png"
+        },
+        "extra": {
+            "FB_TOKEN": "",
+            "FB_BASE_URL": "https://graph.facebook.com/v14.0",
+            "PHONE_NUMBER_ID": "101007656131870",
+            "SERVER_URL": "https://native-in.herokuapp.com",
+            "eas": {
+                "projectId": "a44a6d12-9207-49d9-b635-fb34e251c9e0"
+            }
+        },
+        "plugins": [
+            [
+                "expo-image-picker",
+                {
+                    "photosPermission": "The app need access your photo upload avatar"
+                }
+            ]
+        ]
+    }
+}
