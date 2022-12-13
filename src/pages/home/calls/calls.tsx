@@ -35,7 +35,7 @@ const Calls = () => {
                     alignItems={'center'}
                     justifyContent={'space-between'}
                     width={'100%'}
-                    p={4}
+                    p={'5'}
                     shadow={2}
                     backgroundColor={'violet.800'}
                     direction={'row'}>
@@ -44,7 +44,7 @@ const Calls = () => {
                             color={'white'}
                             fontSize={20}
                             bold={true}>
-                            Transaksi
+                            Panggilan
                         </Text>
                     </Stack>
 
@@ -53,30 +53,6 @@ const Calls = () => {
                         justifyItems={'center'}
                         direction={'row'}
                         space={1}>
-                        <Menu
-                            backgroundColor='white'
-                            shadow={2}
-                            trigger={triggerProps => {
-                                return (
-                                    <Pressable accessibilityLabel='More options menu'>
-                                        <IconButton
-                                            {...triggerProps}
-                                            borderRadius='full'
-                                            _icon={{
-                                                as: Ionicons,
-                                                name: 'ellipsis-vertical',
-                                                color: 'white',
-                                                size: '5',
-                                            }}
-                                        />
-                                    </Pressable>
-                                )
-                            }}>
-                            <Menu.Item
-                                onPress={handleClose}>
-                                <Text>Keluar</Text>
-                            </Menu.Item>
-                        </Menu>
                     </Stack>
                 </Stack>
                 <CallList calls={calls} />

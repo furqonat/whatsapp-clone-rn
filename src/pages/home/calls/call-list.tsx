@@ -184,13 +184,8 @@ const Item: React.FC<{
                                     icon={getCallIcon()}>
                                     {moment(call.time).format('hh:mm A')}
                                 </Chip>
-                                {
-                                    call.length > 1 &&
-                                    <Chip>
-                                        {`${call.length} panggilan`}
-                                    </Chip>
 
-                                }
+                                
                             </View>
                         </Text>
                     </View>

@@ -320,7 +320,10 @@ const ChatItem = ({ route }: Props) => {
                             key={item.index}>
                             <View
                                 style={{
+                                    justifyContent:'space-between',
                                     maxWidth: '70%',
+                                    minHeight:55,
+                                    minWidth:'35%',
                                     // backgroundColor:'#4FA095',
                                     backgroundColor: item?.item?.sender?.phoneNumber === user?.phoneNumber ? '#6ECCAF' : '#2192FF',
                                     paddingHorizontal: 10,

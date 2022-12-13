@@ -13,6 +13,10 @@ type RootStackParamList = {
           }
         | undefined
     profile: undefined
+    profile_diri: undefined
+    profile_publik: undefined
+    tentang_kami: undefined
+    privasi: undefined
     settings: undefined
     qr: undefined,
     transaction: undefined,

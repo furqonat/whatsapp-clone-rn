@@ -1,7 +1,7 @@
 import { NavigationContainer } from '@react-navigation/native'
 import { createStackNavigator } from '@react-navigation/stack'
 import { VStack, Image } from 'native-base'
-import { ChatItem, Form, MyTabs, NewTransaction, Otp, QrCamera, SignIn, Transaction } from 'pages'
+import { ChatItem, Form, MyTabs, NewTransaction, Otp, Privasi, ProfileDiri, ProfilePublik, QrCamera, SignIn, TentangKami, Transaction } from 'pages'
 import { RootStackParamList } from 'pages/screens'
 import { useEffect, useState } from 'react'
 import { useFirebase } from 'utils'
@@ -77,7 +77,27 @@ const Main = () => {
                     initialParams={{
                         contact: null,
                     }}
-                    component={NewTransaction}/>
+                    component={NewTransaction} />
+                <Stack.Screen
+                    options={{ headerShown: false }}
+                    name='profile_diri'
+                    component={ProfileDiri}
+                />
+                <Stack.Screen
+                    options={{ headerShown: false }}
+                    name='profile_publik'
+                    component={ProfilePublik}
+                />
+                <Stack.Screen
+                    options={{ headerShown: false }}
+                    name='tentang_kami'
+                    component={TentangKami}
+                />
+                <Stack.Screen
+                    options={{ headerShown: false }}
+                    name='privasi'
+                    component={Privasi}
+                />
             </Stack.Navigator>
         </NavigationContainer>
     )
