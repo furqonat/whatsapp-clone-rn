@@ -35,7 +35,7 @@ const Calls = () => {
                     alignItems={'center'}
                     justifyContent={'space-between'}
                     width={'100%'}
-                    p={5}
+                    p={4}
                     shadow={2}
                     backgroundColor={'violet.800'}
                     direction={'row'}>
@@ -44,7 +44,7 @@ const Calls = () => {
                             color={'white'}
                             fontSize={20}
                             bold={true}>
-                            Panggilan
+                            Transaksi
                         </Text>
                     </Stack>
 

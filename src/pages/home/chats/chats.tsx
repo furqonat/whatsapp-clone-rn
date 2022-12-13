@@ -114,16 +114,16 @@ const Chats = () => {
                             },
                             bg: "gray.700"
                         }}>
-                            <Modal.Content alignItems={'center'}  py={4} maxWidth="350" maxH="212">
-                            <Image
-            size={20}
-            source={require('../../../assets/adaptive-icon.png')}
-            alt='logo'
-        />
-                                <Text style={{fontSize:18, marginBottom:15}}>Yakin mau keluar?</Text>
+                            <Modal.Content alignItems={'center'} py={4} maxWidth="350" maxH="212">
+                                <Image
+                                    size={20}
+                                    source={require('../../../assets/adaptive-icon.png')}
+                                    alt='logo'
+                                />
+                                <Text style={{ fontSize: 18, marginBottom: 15 }}>Yakin mau keluar?</Text>
                                 <Stack space={30} direction={'row'}>
-                                    
-                                    <Button  onPress={() => {
+
+                                    <Button onPress={() => {
                                         setShowModal(false);
                                     }}>
                                         Cancel

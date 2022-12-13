@@ -3,10 +3,10 @@ import { StackNavigationProp } from '@react-navigation/stack'
 import { doc, getDoc } from 'firebase/firestore'
 import { useAvatar, useContact } from 'hooks'
 import moment from 'moment'
-import { FlatList} from 'native-base'
+import { FlatList, Modal} from 'native-base'
 import { RootStackParamList } from 'pages/screens'
-import React from 'react'
-import { TouchableOpacity, View, Text, Image } from 'react-native'
+import React, { useState } from 'react'
+import { TouchableOpacity, View, Text, Image} from 'react-native'
 import { db, IChatList, useFirebase } from 'utils'
 
 type ChatItem = StackNavigationProp<RootStackParamList>
@@ -65,6 +65,7 @@ const ChatListItem = (props: { item: IChatList }) => {
             }
         })
     }
+    const [showModal, setShowModal] = useState(false);
 
     return (
         <TouchableOpacity
@@ -90,6 +91,7 @@ const ChatListItem = (props: { item: IChatList }) => {
                         
                       
                     }}>
+                    <TouchableOpacity onPress={() => setShowModal(true)}>
                     <Image
                         style={{
                             width: 50,
@@ -100,6 +102,8 @@ const ChatListItem = (props: { item: IChatList }) => {
 
                         source={{ uri:avatar? avatar:undefined}}
                     />
+                    </TouchableOpacity>
+                    
                     <View>
                         <Text
                             style={{
@@ -120,6 +124,23 @@ const ChatListItem = (props: { item: IChatList }) => {
                 </View>
                 <Text style={{ color: 'grey' }}>{moment(item.lastMessage?.createdAt).format('HH:mm')}</Text>
             </View>
+            <Modal isOpen={showModal} onClose={() => setShowModal(false)} _backdrop={{
+                            _dark: {
+                                bg: "white"
+                            },
+                            bg: "gray.700"
+                        }}>
+                            
+                                <Image
+                                    style={{
+                                        height:250,
+                                        width:250
+                                    }}
+                                    source={{ uri:avatar? avatar:undefined}}
+                                    
+                                />
+                                
+                        </Modal>
         </TouchableOpacity>
     )
 }

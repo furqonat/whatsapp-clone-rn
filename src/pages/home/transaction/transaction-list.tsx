@@ -144,17 +144,14 @@ const Item = (props: {
                         </Stack>
                     </Stack>
                     <Stack display={'flex'} >
-                        {/* <Text color={'gray.600'} variant={'body2'}> Rp&nbsp;
+                        <Text color={'gray.600'} variant={'body2'}> Rp&nbsp;
 
                             
-                                // Number(props.transaction.transactionAmount).toLocaleString('id-ID', {
-                                //     style: 'currency',
-                                //     currency: 'IDR'
-                                // })
+                               {props.transaction.transactionAmount}
                                 
                             
 
-                        </Text> */}
+                        </Text>
                      
                         <Text
                             textAlign={'right'}

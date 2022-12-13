@@ -1,10 +1,10 @@
 import { useContact, useUserInfo } from "hooks"
 import moment from "moment"
-import { Avatar, IconButton, Stack, Text } from "native-base"
+// import { Avatar, IconButton, Stack, Text } from "native-base"
 import React, { useState } from "react"
-import { FlatList } from "react-native"
+import { FlatList, Image, View, Text } from "react-native"
 import { TouchableOpacity } from "react-native-gesture-handler"
-import { Chip } from "react-native-paper"
+import { Chip, IconButton } from "react-native-paper"
 import { ICall, useFirebase } from "utils"
 
 interface ICallGroup extends ICall {
@@ -57,9 +57,11 @@ const CallList: React.FC<{
 
 
     return (
-        <Stack
-            display={'flex'}
-            flexDirection={'column'}>
+        <View
+            style={{
+                display:'flex',
+                flexDirection:'column'
+            }}>
             <FlatList
                 data={groupCalls(props.calls)}
                 renderItem={(item: { item: ICallGroup }) => (
@@ -77,7 +79,7 @@ const CallList: React.FC<{
                         }} />
                 )}>
             </FlatList>
-        </Stack>
+        </View>
     )
 }
 
@@ -140,28 +142,44 @@ const Item: React.FC<{
     return (
 
         <TouchableOpacity>
-            <Stack
-                display={filterOptions()}
-                flexDirection={'row'}
-                alignItems={'center'}
-                justifyContent={'space-between'}
-                px={2}
-                space={2}>
-                <Stack direction={'row'} alignItems={'center'} space={2} py={2}>
-                    <Avatar
+            <View
+                style={{
+                    display: 'flex',
+                    flexDirection:'row',
+                    alignItems:'center',
+                    justifyContent:'space-between',
+                    padding:10
+                }}>
+                <View style={{
+                    flexDirection:'row',
+                    alignItems:'center',
+                    paddingVertical:2
+                }}>
+                    <Image
+                        style={{
+                            width: 50,
+                            height: 50,
+                            borderRadius: 100,
+                            marginRight:10
+                        }}
                         source={{
-                            uri: userInfo?.photoURL ? userInfo?.photoURL : ""
+                            uri: userInfo?.photoURL ? userInfo?.photoURL : undefined
                         }} />
-                    <Stack
-                        space={2}
-                        direction={'column'}>
-                        <Text variant={'lg'}>
+                    <View
+                        style={{
+                            flexDirection:'column',
+                        }}>
+                        <Text >
                             {
                                 getOwnerDisplayNameOrPhoneNumber()
                             }
                         </Text>
-                        <Text variant={'sm'}>
-                            <Stack direction={'row'} space={2} justifyItems={'center'}>
+                        <Text >
+                            <View style={{
+                    flexDirection:'row',
+                    justifyContent:'center',
+                    
+                }}  >
                                 <Chip
                                     icon={getCallIcon()}>
                                     {moment(call.time).format('hh:mm A')}
@@ -173,11 +191,11 @@ const Item: React.FC<{
                                     </Chip>
 
                                 }
-                            </Stack>
+                            </View>
                         </Text>
-                    </Stack>
-                </Stack>
-                {
+                    </View>
+                </View>
+                {/* {
                     call.callType === 'video' ? (
                         <IconButton
                             name="video">
@@ -187,8 +205,8 @@ const Item: React.FC<{
                             name={'phone'}>
                         </IconButton>
                     )
-                }
-            </Stack>
+                } */}
+            </View>
         </TouchableOpacity>
     )
 }
