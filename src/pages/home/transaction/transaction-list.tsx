@@ -1,6 +1,6 @@
 import moment from "moment"
-import { Box, FlatList, Text, Stack, Avatar } from "native-base"
-import { Touchable, Image, TouchableOpacity, ScrollView } from "react-native"
+import { Box, FlatList, Stack, Text } from "native-base"
+import { Image, ScrollView, TouchableOpacity } from "react-native"
 import { } from "react-native-gesture-handler"
 import { ITransactions } from "utils"
 
@@ -109,7 +109,7 @@ const Item = (props: {
         }
     }
 
-    
+
 
     return (
         <ScrollView>
@@ -155,7 +155,7 @@ const Item = (props: {
                             
 
                         </Text> */}
-                     
+
                         <Text
                             textAlign={'right'}
                             color={

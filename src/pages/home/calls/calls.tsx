@@ -53,30 +53,6 @@ const Calls = () => {
                         justifyItems={'center'}
                         direction={'row'}
                         space={1}>
-                        <Menu
-                            backgroundColor='white'
-                            shadow={2}
-                            trigger={triggerProps => {
-                                return (
-                                    <Pressable accessibilityLabel='More options menu'>
-                                        <IconButton
-                                            {...triggerProps}
-                                            borderRadius='full'
-                                            _icon={{
-                                                as: Ionicons,
-                                                name: 'ellipsis-vertical',
-                                                color: 'white',
-                                                size: '5',
-                                            }}
-                                        />
-                                    </Pressable>
-                                )
-                            }}>
-                            <Menu.Item
-                                onPress={handleClose}>
-                                <Text>Keluar</Text>
-                            </Menu.Item>
-                        </Menu>
                     </Stack>
                 </Stack>
                 <CallList calls={calls} />

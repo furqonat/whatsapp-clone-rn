@@ -3,7 +3,6 @@ import moment from "moment"
 import { Avatar, IconButton, Stack, Text } from "native-base"
 import React, { useState } from "react"
 import { FlatList } from "react-native"
-import { TouchableOpacity } from "react-native-gesture-handler"
 import { Chip } from "react-native-paper"
 import { ICall, useFirebase } from "utils"
 
@@ -57,27 +56,23 @@ const CallList: React.FC<{
 
 
     return (
-        <Stack
-            display={'flex'}
-            flexDirection={'column'}>
-            <FlatList
-                data={groupCalls(props.calls)}
-                renderItem={(item: { item: ICallGroup }) => (
-                    <Item
-                        key={item.item.callId}
-                        call={item.item}
-                        selected={selected !== null && selected === item.item.callId}
-                        onSelect={(event: string) => {
-                            setSelected(event)
-                        }}
-                        filters={props.filterOptions}
-                        onClick={(event: string) => {
-                            props.onClick && props.onClick(event)
-                            props.innerCalls && props.innerCalls(item.item?.calls)
-                        }} />
-                )}>
-            </FlatList>
-        </Stack>
+        <FlatList
+            data={groupCalls(props.calls)}
+            renderItem={(item: { item: ICallGroup }) => (
+                <Item
+                    key={item.item.callId}
+                    call={item.item}
+                    selected={selected !== null && selected === item.item.callId}
+                    onSelect={(event: string) => {
+                        setSelected(event)
+                    }}
+                    filters={props.filterOptions}
+                    onClick={(event: string) => {
+                        props.onClick && props.onClick(event)
+                        props.innerCalls && props.innerCalls(item.item?.calls)
+                    }} />
+            )}>
+        </FlatList>
     )
 }
 
@@ -139,57 +134,44 @@ const Item: React.FC<{
 
     return (
 
-        <TouchableOpacity>
-            <Stack
-                display={filterOptions()}
-                flexDirection={'row'}
-                alignItems={'center'}
-                justifyContent={'space-between'}
-                px={2}
-                space={2}>
-                <Stack direction={'row'} alignItems={'center'} space={2} py={2}>
-                    <Avatar
-                        source={{
-                            uri: userInfo?.photoURL ? userInfo?.photoURL : ""
-                        }} />
-                    <Stack
-                        space={2}
-                        direction={'column'}>
-                        <Text variant={'lg'}>
+        <Stack
+            display={filterOptions()}
+            flexDirection={'row'}
+            alignItems={'center'}
+            justifyContent={'space-between'}
+            px={2}
+            space={2}>
+            <Stack direction={'row'} alignItems={'center'} space={2} py={2}>
+                <Avatar
+                    source={{
+                        uri: userInfo?.photoURL ? userInfo?.photoURL : ""
+                    }} />
+                <Stack
+                    space={2}
+                    direction={'column'}>
+                    <Text variant={'lg'}>
+                        {
+                            getOwnerDisplayNameOrPhoneNumber()
+                        }
+                    </Text>
+                    <Text variant={'sm'}>
+                        <Stack direction={'row'} space={2} justifyItems={'center'}>
+                            <Chip
+                                icon={getCallIcon()}>
+                                {moment(call.time).format('hh:mm A')}
+                            </Chip>
                             {
-                                getOwnerDisplayNameOrPhoneNumber()
-                            }
-                        </Text>
-                        <Text variant={'sm'}>
-                            <Stack direction={'row'} space={2} justifyItems={'center'}>
-                                <Chip
-                                    icon={getCallIcon()}>
-                                    {moment(call.time).format('hh:mm A')}
+                                call.length > 1 &&
+                                <Chip>
+                                    {`${call.length} panggilan`}
                                 </Chip>
-                                {
-                                    call.length > 1 &&
-                                    <Chip>
-                                        {`${call.length} panggilan`}
-                                    </Chip>
 
-                                }
-                            </Stack>
-                        </Text>
-                    </Stack>
+                            }
+                        </Stack>
+                    </Text>
                 </Stack>
-                {
-                    call.callType === 'video' ? (
-                        <IconButton
-                            name="video">
-                        </IconButton>
-                    ) : (
-                        <IconButton
-                            name={'phone'}>
-                        </IconButton>
-                    )
-                }
-            </Stack>
-        </TouchableOpacity>
+            </Stack>    
+        </Stack>
     )
 }
 

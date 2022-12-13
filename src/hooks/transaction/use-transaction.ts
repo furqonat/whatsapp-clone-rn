@@ -17,7 +17,9 @@ const useTransactions = (props: { userId?: string | undefined }) => {
                         value.push(doc.data() as ITransactions)
                     }
                 })
-                setTransactions(value)
+                setTransactions(value.sort((a, b) => {
+                    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+                }))
             })
             return () => {
                 subscribe()
