@@ -3,8 +3,9 @@ import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import * as ImagePicker from 'expo-image-picker'
 import { useAvatar } from 'hooks'
-import { Button, Center, IconButton, Image, Input, Stack, useToast, VStack } from 'native-base'
+import { Button, Center, Image, Input, Stack, VStack, useToast } from 'native-base'
 import React, { useEffect, useState } from 'react'
+import { IconButton } from 'react-native-paper'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { db, useFirebase } from 'utils'
 import { RootStackParamList } from '../screens'
@@ -21,6 +22,7 @@ function Form() {
     const { uploadAvatar, avatar } = useAvatar({
         phoneNumber: user?.phoneNumber,
     })
+
 
     const handlePress = () => {
         if (displayName?.length > 0) {
@@ -97,17 +99,16 @@ function Form() {
                         src={`${photo}`}
                     />
                     <IconButton
-                        position={'absolute'}
-                        right={'3'}
-                        background={'#fff'}
-                        bottom={'2'}
-                        borderRadius={'full'}
-                        size={10}
-                        onPress={handleNewAvatar}
-                        _icon={{
-                            name: 'camera',
-                            color: 'green.400s',
+                        style={{
+                            position: 'absolute',
+                            backgroundColor: 'white',
+                            padding: 4,
+                            bottom: 20,
+                            right: 40,
                         }}
+                        icon='camera'
+                        size={24}
+                        onPress={handleNewAvatar}
                     />
                 </Center>
                 <Stack

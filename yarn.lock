@@ -2070,6 +2070,13 @@
     "@jridgewell/resolve-uri" "3.1.0"
     "@jridgewell/sourcemap-codec" "1.4.14"
 
+"@mohamadkh75/react-native-jalali-datepicker@^1.1.1":
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/@mohamadkh75/react-native-jalali-datepicker/-/react-native-jalali-datepicker-1.1.1.tgz#bda02b35b6b26413ae8f5041fd4046248f1c0d83"
+  integrity sha512-1mltuZI84JNHIB3l79/KJtHpyg3vDKvjlpl6E45BRjtg7Lhu1Xs+EbsINlIrB/vtVMswTX0sZ1rGm/yTZprV2w==
+  dependencies:
+    jalaali-js "^1.1.0"
+
 "@nodelib/fs.scandir@2.1.5":
   version "2.1.5"
   resolved "https://registry.yarnpkg.com/@nodelib/fs.scandir/-/fs.scandir-2.1.5.tgz#7619c2eb21b25483f6d167548b4cfd5a7488c3d5"
@@ -2815,6 +2822,13 @@
     minimist "^1.2.0"
     prompts "^2.4.0"
     semver "^6.3.0"
+
+"@react-native-community/datetimepicker@6.2.0":
+  version "6.2.0"
+  resolved "https://registry.yarnpkg.com/@react-native-community/datetimepicker/-/datetimepicker-6.2.0.tgz#50bc629e70e4030c48205c01efbc65a8f35d82d4"
+  integrity sha512-w1ZS+wYO3qSASliRp+B7mPphOhtVm++rhSbj1WsgXdgLgDXSkDxpMnAXXQu9M0XdcgBwVJ6wDExeIwuzU5Jtfg==
+  dependencies:
+    invariant "^2.2.4"
 
 "@react-native-community/masked-view@^0.1.11":
   version "0.1.11"
@@ -6862,6 +6876,11 @@ jake@^10.8.5:
     filelist "^1.0.1"
     minimatch "^3.0.4"
 
+jalaali-js@^1.1.0:
+  version "1.2.6"
+  resolved "https://registry.yarnpkg.com/jalaali-js/-/jalaali-js-1.2.6.tgz#f4ee4bf686ed32bb9656f101225be4b7a1c3fd21"
+  integrity sha512-io974va+Qyu+UfuVX3UIAgJlxLhAMx9Y8VMfh+IG00Js7hXQo1qNQuwSiSa0xxco0SVgx5HWNkaiCcV+aZ8WPw==
+
 jest-get-type@^26.3.0:
   version "26.3.0"
   resolved "https://registry.yarnpkg.com/jest-get-type/-/jest-get-type-26.3.0.tgz#e97dc3c3f53c2b406ca7afaed4493b1d099199e0"
@@ -8453,6 +8472,11 @@ path-type@^4.0.0:
   version "4.0.0"
   resolved "https://registry.yarnpkg.com/path-type/-/path-type-4.0.0.tgz#84ed01c0a7ba380afe09d90a8c180dcd9d03043b"
   integrity sha512-gDKb8aZMDeD/tZWs9P6+q0J9Mwkdl6xMV8TjnGP3qJVJ06bdMgkbBlLU8IdfOsIsFz2BW1rNVT3XuNEl8zPAvw==
+
+phone@^3.1.32:
+  version "3.1.32"
+  resolved "https://registry.yarnpkg.com/phone/-/phone-3.1.32.tgz#95bcb04170e626b43ce5538c0017ac44bbd6cb3e"
+  integrity sha512-kT89uAqNr8sEXjv/2NDzp2Kpb/BQ5bTzHMLZFwUnqDnDBaObcO3qLzQ030tDlhxZrFVUd+EIq8pie5/L8SNVrQ==
 
 picocolors@^1.0.0:
   version "1.0.0"

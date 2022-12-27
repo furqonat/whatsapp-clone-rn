@@ -1,5 +1,6 @@
 import { NavigationContainer } from '@react-navigation/native'
 import { createStackNavigator } from '@react-navigation/stack'
+import { useChangeRoute } from 'hooks'
 import { VStack, Image } from 'native-base'
 import { ChatItem, Form, MyTabs, NewTransaction, Otp, Privasi, ProfileDiri, ProfilePublik, QrCamera, SignIn, TentangKami, Transaction } from 'pages'
 import { RootStackParamList } from 'pages/screens'
@@ -26,26 +27,40 @@ const Main = () => {
     const [indexScreen, setIndexScreen] = useState<'signin' | 'tabbar'>('signin')
 
     const { user, isLoading } = useFirebase()
+    const [currentRoute, setCurrentRoute] = useState('')
 
     useEffect(() => {
-        if (user) {
+        console.log(currentRoute)
+        // if current route is not signin, otp, or form and user is not null, set index screen to tabbar
+        // else set index screen to signin
+        if (currentRoute !== 'form' && user) {
             setIndexScreen('tabbar')
         } else {
             setIndexScreen('signin')
         }
-    }, [user])
+    }, [user, currentRoute])
 
     if (isLoading) {
         return loading
     }
 
+
     return (
-        <NavigationContainer>
+        <NavigationContainer
+            onStateChange={(state) => {
+                const currentRoute = state?.routes[state.index].name
+                setCurrentRoute(currentRoute || "")
+            }}>
             <Stack.Navigator>
                 <Stack.Screen
                     options={{ headerShown: false }}
-                    name={indexScreen}
+                    name={indexScreen === 'signin' ? 'signin' : 'tabbar'}
                     component={indexScreen === 'signin' ? SignIn : MyTabs}
+                />
+                <Stack.Screen
+                    options={{ headerShown: false }}
+                    name={indexScreen === 'tabbar' ? 'signin' : 'tabbar'}
+                    component={indexScreen === 'tabbar' ? SignIn : MyTabs}
                 />
                 <Stack.Screen
                     options={{ headerShown: false }}

@@ -27,6 +27,7 @@ const NewTransaction = (props: Props) => {
     const [status, setStatus] = useState('legal')
     const [trans, setTrans] = useState<TransactionObject | null>(null)
     const [alertDialog, setAlertDialog] = useState(false)
+    const [isLoading, setIsLoading] = useState(false)
 
     const handleChangeTitle = (event: string) => {
         setTitle(event)
@@ -85,7 +86,7 @@ const NewTransaction = (props: Props) => {
 
     const createTransaction = (transaction: TransactionObject) => {
         // setOpenDialog(true)
-
+        setIsLoading(true)
         const id = transaction.receiverInfo.uid + user?.uid + new Date().getTime()
         const orderId = `order-${new Date().getTime()}`
         const dbRef = doc(db, 'transactions', orderId)
@@ -124,7 +125,9 @@ const NewTransaction = (props: Props) => {
                     // setOpenDialog(false)
                     // onDone && onDone(true)
                     setAlertDialog(false)
+                    setIsLoading(false)
                 }).catch(() => {
+                    setIsLoading(false)
                     console.log('error')
                     // setOpenDialog(false)
                     // onDone && onDone(false)
@@ -275,11 +278,13 @@ const NewTransaction = (props: Props) => {
                         <Modal.Footer>
                             <Button.Group space={2}>
                                 <Button
+                                    isDisabled={isLoading}
                                     variant={'ghost'}
                                     onPress={() => setAlertDialog(false)}>
                                     <Text>Batal</Text>
                                 </Button>
                                 <Button
+                                    isDisabled={isLoading}
                                     onPress={handleOnButtonPress}>
                                     <Text color={'white'}>Lanjutkan</Text>
                                 </Button>

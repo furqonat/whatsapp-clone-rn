@@ -9,11 +9,12 @@ const InputPrimary = (props: any) => {
             width: '80%',
 
         }}>
-            <Text style={{
+            <Text
+                style={{
                 alignSelf: 'flex-start',
                 left: 15,
                 color: '#3b5998'
-            }}>{props.tittle}</Text>
+            }}>{props.title}</Text>
             <TextInput
                 value={props.value}
                 style={{
@@ -24,14 +25,11 @@ const InputPrimary = (props: any) => {
                     borderColor: '#3b5998',
                     borderWidth: 1,
                     width: '100%'
-
-
-
                 }}
                 editable={!props.disabled}
                 onChangeText={props.onChangeText}
                 placeholder={props.placeholder}
-
+                onPressIn={props.onPress}
             />
         </View>
     )

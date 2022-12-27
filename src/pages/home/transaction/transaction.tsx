@@ -6,10 +6,11 @@ import { useContacts, useTransactions } from 'hooks'
 import { IconButton, Menu, Pressable, Stack, StatusBar, Text, VStack } from "native-base"
 import { RootStackParamList } from "pages/screens"
 import { useMemo, useRef, useState } from "react"
-import { IContact, ITransactions, useFirebase } from "utils"
+import { IContact, ITransactions, db, useFirebase } from "utils"
 import { ContactList } from '../chats/contact-list'
 import { TransactionItem } from './transaction-item'
 import { TransactionList } from './transaction-list'
+import { doc, getDoc } from 'firebase/firestore'
 
 type signInScreenProp = StackNavigationProp<RootStackParamList, 'signin'>
 
@@ -41,9 +42,19 @@ const Transaction = () => {
     }
 
     const handleOnContactPress = (item: IContact) => {
-        bsRef.current?.close()
-        navigation.navigate('new_transaction', {
-            contact: item
+        const docRef = doc(db, 'users', `${item?.phoneNumber}`)
+        getDoc(docRef).then((doc) => {
+            if (doc.exists() && doc.data()?.isIDCardVerified === true) {
+                bsRef.current?.close()
+                navigation.navigate('new_transaction', {
+                    contact: item
+                })
+            } else {
+                alert("Nomor yang anda pilih belum terverifikasi. Beri tahu mereka untuk melakukan verifikasi terlebih dahulu untuk dapat melakukan transaksi")
+            }
+        }).catch((error) => {
+            console.log("Error getting document:", error);
+            alert("Ada kesalahan silahkan coba lagi")
         })
     }
 
@@ -54,7 +65,14 @@ const Transaction = () => {
     }
 
     const handleOpen = () => {
-        bsRef.current?.expand()
+        if (user?.isIDCardVerified === true) {
+            bsRef.current?.expand()
+        } else {
+            alert("Akun anda belum terverikasi silahkan verifikasi akun anda terlebih dahulu")
+            setTimeout(() => {
+                navigation.navigate('profile_diri')
+            }, 2000)
+        }
     }
 
     return (

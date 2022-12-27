@@ -7,11 +7,11 @@ type RootStackParamList = {
     tabbar: undefined
     chat: undefined
     chatItem:
-        | {
-              chatId?: string | null
-              phoneNumber?: string | null
-          }
-        | undefined
+    | {
+        chatId?: string | null
+        phoneNumber?: string | null
+    }
+    | undefined
     profile: undefined
     profile_diri: undefined
     profile_publik: undefined

@@ -1,53 +1,74 @@
-import { Ionicons } from '@expo/vector-icons'
 import BottomSheet, { BottomSheetFlatList } from '@gorhom/bottom-sheet'
 import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { useChats, useContacts } from 'hooks'
-import { Actionsheet, Button, FlatList, Modal, Stack, StatusBar, Text, Image } from 'native-base'
+import { Button, Image, Modal, Stack, StatusBar, Text, VStack } from 'native-base'
 import { RootStackParamList } from 'pages/screens'
-import React, { useMemo, useRef, useState } from 'react'
-import { View } from 'react-native'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
+import { BackHandler, View } from 'react-native'
 import { Colors, IconButton } from 'react-native-paper'
-import { useFirebase } from 'utils'
+import { IContact, useFirebase } from 'utils'
 import { ChatList } from './chat-list'
 import { ContactList } from './contact-list'
 
-type signInScreenProp = StackNavigationProp<RootStackParamList, 'signin'>
-type qrScreenProp = StackNavigationProp<RootStackParamList, 'qr'>
+type signInScreenProp = StackNavigationProp<RootStackParamList, 'signin' | "chatItem" | "qr">
 
 const Chats = () => {
+
     const [showModal, setShowModal] = useState(false);
-    const navigationSignin = useNavigation<signInScreenProp>()
-    const navigationQr = useNavigation<qrScreenProp>()
-    const { user } = useFirebase()
-    const { logout } = useFirebase()
+    const navigation = useNavigation<signInScreenProp>()
+
+    const { user, logout } = useFirebase()
 
     const { chatList } = useChats({ user: user })
     const { contacts } = useContacts({ user: user })
 
     const bottomSheetRef = useRef<BottomSheet>(null)
 
-    const [isOpen, setIsOpen] = useState(false)
 
-
-    const handleOpen = () => {
-        setIsOpen(!isOpen)
-    }
+    const snapPoints = useMemo(() => ['25%', '50%', '75%'], [])
 
 
     const handleLogOut = () => {
         logout().then(_ => {
-            navigationSignin.navigate('signin')
+            navigation.navigate('signin')
         })
     }
 
     const handleQr = () => {
-        navigationQr.navigate('qr')
+        navigation.navigate('qr')
+    }
+
+    const handleOpenChat = (item: IContact) => {
+        const chat = chatList?.filter(chat => {
+            return chat.owner === user?.uid && chat.receiver?.uid === item.uid || chat.owner === item.uid && chat.receiver?.uid === user?.uid
+        })
+        if (chat?.length > 0) {
+            bottomSheetRef.current?.close()
+            navigation.navigate('chatItem', {
+                chatId: chat[0].id,
+                phoneNumber: item.phoneNumber
+            })
+        }
     }
 
     const handleOpenBottomSheet = () => {
         bottomSheetRef.current?.expand()
     }
+
+    useEffect(() => {
+        BackHandler.addEventListener('hardwareBackPress', () => {
+            if (user) {
+                BackHandler.exitApp()
+            }
+            return true
+        })
+        return () => {
+            BackHandler.removeEventListener('hardwareBackPress', () => {
+                return true
+            })
+        }
+    }, [])
 
     return (
         <View
@@ -91,7 +112,7 @@ const Chats = () => {
                             flexDirection: 'row',
                         }}>
                         <IconButton
-                            icon="code-brackets"
+                            icon="qrcode"
                             color={Colors.white}
                             size={23}
                             onPress={handleQr}
@@ -100,7 +121,7 @@ const Chats = () => {
                             icon="plus"
                             color={Colors.white}
                             size={23}
-                            onPress={handleOpen}
+                            onPress={handleOpenBottomSheet}
                         />
                         <IconButton
                             icon="logout"
@@ -146,22 +167,21 @@ const Chats = () => {
                     }}>
                     <ChatList chatsList={chatList} />
                 </View>
-                <Actionsheet
-                    size={'full'}
-                    onClose={handleOpen}
-                    useRNModal={true}
-                    isOpen={isOpen}>
-                    <Actionsheet.Content
-                        alignItems={'flex-start'}>
-                        <FlatList
-                            data={contacts}
-                            renderItem={item => (
-                                <Actionsheet.Item>
-                                    <ContactList item={item.item} />
-                                </Actionsheet.Item>
-                            )} />
-                    </Actionsheet.Content>
-                </Actionsheet>
+                <BottomSheet
+                    index={-1}
+                    snapPoints={snapPoints}
+                    ref={bottomSheetRef}
+                    enablePanDownToClose={true}>
+                    <BottomSheetFlatList
+                        data={contacts}
+                        keyExtractor={item => item.uid}
+                        renderItem={({ item }) => (
+                            <VStack
+                                p={4}>
+                                <ContactList item={item} onPress={handleOpenChat} />
+                            </VStack>
+                        )}/>
+                </BottomSheet>
             </View>
         </View>
     )

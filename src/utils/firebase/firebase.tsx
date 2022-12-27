@@ -10,7 +10,7 @@ import {
     User,
     onAuthStateChanged
 } from '@firebase/auth'
-import { doc, getDoc, getFirestore, setDoc, updateDoc } from '@firebase/firestore'
+import { doc, getDoc, getFirestore, onSnapshot, setDoc, updateDoc } from '@firebase/firestore'
 import axios from 'axios'
 import Constants from 'expo-constants'
 import React, { createContext, useContext, useEffect, useState } from 'react'
@@ -55,22 +55,18 @@ const firebaseApp = () => {
             setIsloading(true)
             if (user) {
                 const dbRef = doc(db, 'users', `${user.phoneNumber}`)
-                getDoc(dbRef)
-                    .then(doc => {
-                        if (doc.exists()) {
-                            const data = doc.data()
-                            const formattedUser = formatUser(data as IUser)
-                            setUser(formattedUser)
-                            setIsloading(false)
-                        } else {
-                            setUser(null)
-                            setIsloading(false)
-                        }
-                    })
-                    .catch(error => {
+                onSnapshot(dbRef, (docs) => {
+                    if (docs.exists()) {
+                        const data = docs.data()
+                        const formattedUser = formatUser(data as IUser)
+                        setUser(formattedUser)
+                        setIsloading(false)
+                    } else {
                         setUser(null)
                         setIsloading(false)
-                    })
+                    }
+                })
+
             } else {
                 setIsloading(false)
                 setUser(null)
@@ -82,6 +78,14 @@ const firebaseApp = () => {
             setIsloading(false)
         }
     }, [])
+
+
+    const reloadUser = async () => {
+        getDoc(doc(db, 'users', `${user?.phoneNumber}`)).then(doc => {
+            const formattedUser = formatUser(doc.data() as IUser)
+            setUser(formattedUser)
+        })
+    }
 
     const assignUser = async (user: User) => {
         const dbRef = getFirestore(app)
@@ -98,7 +102,7 @@ const firebaseApp = () => {
                         resolve()
                     })
                 }).catch(error => {
-                    
+
                     reject(error)
                 })
             } else {
@@ -119,7 +123,7 @@ const firebaseApp = () => {
                         resolve()
                     })
                 }).catch(error => {
-                    
+
                     reject(error)
                 })
             }
@@ -174,7 +178,7 @@ const firebaseApp = () => {
 
     const verifyCode = async (code: string, provider: 'phone' | 'whatsapp') => {
         if (provider === 'phone') {
-            
+
             if (confirmationResult) {
                 return new Promise<void>((resolve, reject) => {
                     confirmationResult
@@ -207,7 +211,7 @@ const firebaseApp = () => {
                         phoneNumber: phone,
                     })
                     if (wa.status === 200) {
-                        
+
                         signInWithCustomToken(auth, wa.data.token).then(async result => {
                             assignUser(result.user)
                             axios
@@ -241,7 +245,7 @@ const firebaseApp = () => {
                 // setUser(formatUser(result.user))
             })
             .catch(error => {
-                
+
             })
     }
 
@@ -263,7 +267,8 @@ const firebaseApp = () => {
         verifyCode,
         signIn,
         phone,
-        isLoading
+        isLoading,
+        reloadUser
     }
 }
 
@@ -276,7 +281,8 @@ const FirebaseContext = createContext({
     verifyCode: async (_code: string, _provider: 'phone' | 'whatsapp'): Promise<void> => { },
     signIn: async (_token: string) => { },
     phone: null as string | null,
-    isLoading: true
+    isLoading: true,
+    reloadUser: async () => { }
 })
 
 const FirebaseProvider = (props: { children?: React.ReactNode }) => {

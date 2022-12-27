@@ -31,34 +31,40 @@ const useAvatar = (props: { phoneNumber?: string | null }) => {
         }
     }, [phoneNumber])
 
-    const uploadAvatar = (file: File) => {
-        const storage = getStorage()
-        const storageRef = ref(storage, `${phoneNumber}/avatar/${file.name}`)
-        const task = uploadBytesResumable(storageRef, file)
-        task.on(
-            'state_changed',
-            snapshot => {
-                const progressUpload = (snapshot.bytesTransferred / snapshot.totalBytes) * 100
-                setProgress(progressUpload)
-            },
-            _error => {
-                if (!toast.isActive(toastId)) {
-                    toast.show({
-                        id: toastId,
-                        title: 'Error while uploading a avatar',
+    const uploadAvatar = (file: File): Promise<void> => {
+        return new Promise<void>((resolve, reject) => {
+            const storage = getStorage()
+            const storageRef = ref(storage, `${phoneNumber}/avatar/${file.name}`)
+            const task = uploadBytesResumable(storageRef, file)
+            task.on(
+                'state_changed',
+                snapshot => {
+                    const progressUpload = (snapshot.bytesTransferred / snapshot.totalBytes) * 100
+                    setProgress(progressUpload)
+                },
+                _error => {
+                    if (!toast.isActive(toastId)) {
+                        toast.show({
+                            id: toastId,
+                            title: 'Error while uploading a avatar',
+                        })
+                    }
+                },
+                () => {
+                    getDownloadURL(task.snapshot.ref).then(downloadURL => {
+                        setAvatar(downloadURL)
+                        const dbRef = doc(db, 'users', `${phoneNumber}`)
+                        updateDoc(dbRef, {
+                            photoURL: downloadURL,
+                        }).then(() => {
+                            resolve()
+                        }).catch(() => {
+                            reject()
+                        })
                     })
                 }
-            },
-            () => {
-                getDownloadURL(task.snapshot.ref).then(downloadURL => {
-                    setAvatar(downloadURL)
-                    const dbRef = doc(db, 'users', `${phoneNumber}`)
-                    updateDoc(dbRef, {
-                        photoURL: downloadURL,
-                    }).then(() => {})
-                })
-            }
-        )
+            )
+        })
     }
 
     return {

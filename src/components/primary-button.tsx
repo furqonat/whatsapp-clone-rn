@@ -14,7 +14,7 @@ const ButtonPrimary = (props:any) => {
     alignItems:'center'
 }}>
   
-      <Text style={{color:'white', fontSize:18}}>{props.tittle}</Text>
+      <Text style={{color:'white', fontSize:18}}>{props.title}</Text>
 
   
 </TouchableOpacity>
