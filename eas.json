@@ -12,19 +12,24 @@
                 "buildType": "apk"
             }
         },
-        "preview2": {
-            "android": {
-                "gradleCommand": ":app:assembleDebug"
-            }
-        },
         "production": {
             "android": {
                 "buildType": "apk"
             }
+        },
+        "release": {
+            "android": {
+                "buildType": "app-bundle"
+            }
         }
     },
     "submit": {
-        "production": {}
+        "production": {
+            "android": {
+                "track": "internal",
+                "serviceAccountKeyPath": "service-account.json "
+            }
+        }
     }
 }
 
