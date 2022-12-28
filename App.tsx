@@ -1,6 +1,5 @@
 import { extendTheme, NativeBaseProvider } from 'native-base'
 import { FirebaseProvider } from 'utils'
-
 import { Main } from './src'
 
 const newColorTheme = {

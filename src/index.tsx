@@ -26,19 +26,18 @@ const loading = (
 const Main = () => {
     const [indexScreen, setIndexScreen] = useState<'signin' | 'tabbar'>('signin')
 
-    const { user, isLoading } = useFirebase()
-    const [currentRoute, setCurrentRoute] = useState('')
+    const {user, isLoading, currentRoute } = useFirebase()
 
     useEffect(() => {
-        console.log(currentRoute)
         // if current route is not signin, otp, or form and user is not null, set index screen to tabbar
         // else set index screen to signin
-        if (currentRoute !== 'form' && user) {
+        if (user) {
             setIndexScreen('tabbar')
         } else {
             setIndexScreen('signin')
         }
-    }, [user, currentRoute])
+        
+    }, [user])
 
     if (isLoading) {
         return loading
@@ -46,11 +45,7 @@ const Main = () => {
 
 
     return (
-        <NavigationContainer
-            onStateChange={(state) => {
-                const currentRoute = state?.routes[state.index].name
-                setCurrentRoute(currentRoute || "")
-            }}>
+        <NavigationContainer>
             <Stack.Navigator>
                 <Stack.Screen
                     options={{ headerShown: false }}

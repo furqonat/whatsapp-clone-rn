@@ -50,6 +50,8 @@ const firebaseApp = () => {
     const [verificationCode, setVerificationCode] = useState(0)
     const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null)
 
+    const [currentRoute, setCurrentRoute] = useState('')
+
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, user => {
             setIsloading(true)
@@ -258,6 +260,10 @@ const firebaseApp = () => {
         })
     }
 
+    const changeRoute = (route: string) => {
+        setCurrentRoute(route)
+    }
+
     return {
         confirmationResult,
         signInWithPhone,
@@ -268,7 +274,9 @@ const firebaseApp = () => {
         signIn,
         phone,
         isLoading,
-        reloadUser
+        reloadUser,
+        currentRoute,
+        changeRoute
     }
 }
 
@@ -282,7 +290,9 @@ const FirebaseContext = createContext({
     signIn: async (_token: string) => { },
     phone: null as string | null,
     isLoading: true,
-    reloadUser: async () => { }
+    reloadUser: async () => { },
+    currentRoute: "",
+    changeRoute: (_route: string) => { }
 })
 
 const FirebaseProvider = (props: { children?: React.ReactNode }) => {

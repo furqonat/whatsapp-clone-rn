@@ -96,8 +96,7 @@ const ChatListItem = (props: { item: IChatList }) => {
                                 borderRadius: 100,
                                 marginRight: 10
                             }}
-
-                            source={{ uri: avatar ? avatar : undefined }}
+                            source={{ uri: avatar ? avatar : `https://ui-avatars.com/api/?name=Rekberin` }}
                         />
                     </TouchableOpacity>
 

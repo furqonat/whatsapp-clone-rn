@@ -2,14 +2,16 @@ import BottomSheet, { BottomSheetFlatList } from '@gorhom/bottom-sheet'
 import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { useChats, useContacts } from 'hooks'
-import { Button, Image, Modal, Stack, StatusBar, Text, VStack } from 'native-base'
+import { Button, Image, Input, Modal, Stack, StatusBar, Text, VStack } from 'native-base'
 import { RootStackParamList } from 'pages/screens'
 import React, { useEffect, useMemo, useRef, useState } from 'react'
-import { BackHandler, View } from 'react-native'
+import { BackHandler, NativeSyntheticEvent, TextInputSubmitEditingEventData, View } from 'react-native'
 import { Colors, IconButton } from 'react-native-paper'
-import { IContact, useFirebase } from 'utils'
+import { IContact, db, useFirebase } from 'utils'
 import { ChatList } from './chat-list'
 import { ContactList } from './contact-list'
+import { collection, doc, getDoc, getDocs, query, where } from 'firebase/firestore'
+import phone from 'phone'
 
 type signInScreenProp = StackNavigationProp<RootStackParamList, 'signin' | "chatItem" | "qr">
 
@@ -18,6 +20,7 @@ const Chats = () => {
     const [showModal, setShowModal] = useState(false);
     const navigation = useNavigation<signInScreenProp>()
 
+
     const { user, logout } = useFirebase()
 
     const { chatList } = useChats({ user: user })
@@ -25,6 +28,8 @@ const Chats = () => {
 
     const bottomSheetRef = useRef<BottomSheet>(null)
 
+    const [search, setSearch] = useState('')
+    const [contactList, setContactList] = useState<IContact[]>([])
 
     const snapPoints = useMemo(() => ['25%', '50%', '75%'], [])
 
@@ -33,6 +38,13 @@ const Chats = () => {
         logout().then(_ => {
             navigation.navigate('signin')
         })
+    }
+
+    const handleOnSearch = (text: string) => {
+        setSearch(text)
+        if (text === '') {
+            setContactList(contacts || [])
+        }
     }
 
     const handleQr = () => {
@@ -56,19 +68,43 @@ const Chats = () => {
         bottomSheetRef.current?.expand()
     }
 
-    useEffect(() => {
-        BackHandler.addEventListener('hardwareBackPress', () => {
-            if (user) {
-                BackHandler.exitApp()
-            }
-            return true
-        })
-        return () => {
-            BackHandler.removeEventListener('hardwareBackPress', () => {
-                return true
+    const handleOnSumbitEventData = (event: NativeSyntheticEvent<TextInputSubmitEditingEventData>) => {
+        event.preventDefault()
+        const userRef = collection(db, 'users')
+        const phoneNumber = phone(search, {
+            country: 'ID'
+        }).phoneNumber
+        if (phoneNumber && phoneNumber !== '' && phoneNumber !== user?.phoneNumber) {
+            const user = query(userRef, where('phoneNumber', '==', phoneNumber))
+            getDocs(user).then((querySnapshot) => {
+                if (querySnapshot.docs.length > 0) {
+                    const data = querySnapshot.docs[0].data()
+                    const contact: IContact = {
+                        uid: data.uid,
+                        phoneNumber: data.phoneNumber,
+                        displayName: data.displayName,
+                    }
+                    setContactList([contact])
+                } else {
+                    setContactList([])
+                }
+            }).then(() => {
+            }).catch((error) => {
+                alert('Ada kesalahan, silahkan coba lagi')
             })
+        } else {
+            setContactList([])
         }
-    }, [])
+    }
+
+    useEffect(() => {
+        if (contacts) {
+            setContactList(contacts)
+        }
+        if (search === '') {
+            setContactList(contacts || [])
+        }
+    }, [contacts, search])
 
     return (
         <View
@@ -172,15 +208,25 @@ const Chats = () => {
                     snapPoints={snapPoints}
                     ref={bottomSheetRef}
                     enablePanDownToClose={true}>
+                    <Input
+                        onChangeText={handleOnSearch}
+                        value={search}
+                        onSubmitEditing={handleOnSumbitEventData}
+                        m={4}
+                        returnKeyType="search"
+                        variant="filled"
+                        multiline={false}
+                        keyboardType="phone-pad"
+                        placeholder="Cari nomor telepone pengguna lain disini" />
                     <BottomSheetFlatList
-                        data={contacts}
+                        data={contactList}
                         keyExtractor={item => item.uid}
                         renderItem={({ item }) => (
                             <VStack
                                 p={4}>
                                 <ContactList item={item} onPress={handleOpenChat} />
                             </VStack>
-                        )}/>
+                        )} />
                 </BottomSheet>
             </View>
         </View>

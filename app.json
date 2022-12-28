@@ -1,7 +1,7 @@
 {
     "expo": {
         "name": "Rekberin",
-        "slug": "native-in",
+        "slug": "rekberin",
         "version": "1.0.0",
         "orientation": "portrait",
         "icon": "./src/assets/icon.png",
@@ -14,7 +14,9 @@
         "updates": {
             "fallbackToCacheTimeout": 0
         },
-        "assetBundlePatterns": ["**/*"],
+        "assetBundlePatterns": [
+            "**/*"
+        ],
         "ios": {
             "supportsTablet": true
         },
@@ -47,7 +49,7 @@
             "PHONE_NUMBER_ID": "101007656131870",
             "SERVER_URL": "https://native-in.herokuapp.com",
             "eas": {
-                "projectId": "a44a6d12-9207-49d9-b635-fb34e251c9e0"
+                "projectId": "6aa61c64-f62d-4358-9eb3-4665cad0d53b"
             }
         },
         "plugins": [
@@ -57,6 +59,7 @@
                     "photosPermission": "The app need access your photo upload avatar"
                 }
             ]
-        ]
+        ],
+        "owner": "rekberin"
     }
 }

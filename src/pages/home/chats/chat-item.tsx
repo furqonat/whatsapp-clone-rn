@@ -179,7 +179,7 @@ const ChatItem = ({ route }: Props) => {
                             marginRight: 10
 
                         }}
-                        source={{ uri: avatar ? avatar : undefined }}
+                        source={{ uri: avatar ? avatar : `https://ui-avatars.com/api/?name=Rerkberin`  }}
                     />
                     <View
                         style={{

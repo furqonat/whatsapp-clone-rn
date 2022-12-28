@@ -16,7 +16,7 @@ function Form() {
     const navigation = useNavigation<tabScreenProp>()
     const toast = useToast()
 
-    const { user } = useFirebase()
+    const { user, changeRoute } = useFirebase()
     const [photo, setPhoto] = useState(user?.photoURL)
     const [displayName, setDisplayName] = useState(user?.displayName || '')
     const { uploadAvatar, avatar } = useAvatar({
@@ -33,8 +33,7 @@ function Form() {
                 displayName,
             })
                 .then(() => {
-                    
-                    navigation.navigate('tabbar')
+                    changeRoute('tabbar')
                 })
                 .catch(error => {
                     
