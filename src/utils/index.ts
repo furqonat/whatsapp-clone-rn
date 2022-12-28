@@ -1,2 +1,2 @@
-export { IUser } from './interfaces'
+export * from './interfaces'
 export * from './firebase'
