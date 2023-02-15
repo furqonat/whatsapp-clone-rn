@@ -10,20 +10,11 @@ import { CallList } from "./call-list"
 
 type signInScreenProp = StackNavigationProp<RootStackParamList, 'signin'>
 const Calls = () => {
-    const navigation = useNavigation<signInScreenProp>()
 
-    const { logout, user } = useFirebase()
+    const { user } = useFirebase()
     const { calls } = useCall({
         user: user
     })
-
-
-
-    const handleClose = () => {
-        logout().then(_ => {
-            navigation.navigate('signin')
-        })
-    }
     return (
         <Stack direction={'column'}>
             <StatusBar backgroundColor={'#5b21b6'} />

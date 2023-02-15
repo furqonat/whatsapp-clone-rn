@@ -27,6 +27,7 @@ module.exports = function (api) {
                     allowUndefined: true,
                 },
             ],
+            'transform-inline-environment-variables',
         ],
     }
 }

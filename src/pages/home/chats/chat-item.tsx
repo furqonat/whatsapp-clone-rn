@@ -2,8 +2,8 @@ import { Ionicons, MaterialIcons } from '@expo/vector-icons'
 import { useNavigation } from '@react-navigation/native'
 import type { NativeStackScreenProps } from '@react-navigation/native-stack'
 import { StackNavigationProp } from '@react-navigation/stack'
-import { doc, getDoc } from 'firebase/firestore'
-import { useAvatar, useChats, useContact, useStatus } from 'hooks'
+import { collection, doc, getDoc, getDocs, query, where } from 'firebase/firestore'
+import { useAvatar, useChats, useContact, useStatus, useUserInfo } from 'hooks'
 import moment from 'moment'
 import { Button, Input, Menu, Modal, Pressable, useToast, IconButton } from 'native-base'
 import { FlatList, Image, StatusBar, Text, View } from 'react-native'
@@ -38,26 +38,30 @@ const ChatItem = ({ route }: Props) => {
     const [isOpen, setIsOpen] = useState(false)
     const [contactName, setContactName] = useState('')
 
+
     const { status } = useStatus({
         phoneNumber: route?.params?.phoneNumber,
     })
 
     const { avatar } = useAvatar({
-        phoneNumber: user?.uid === chatList?.owner ? chatList?.receiver?.phoneNumber : chatList?.ownerPhoneNumber,
+        uid: user?.uid === chatList?.owner ? chatList?.receiver?.uid : chatList?.owner,
     })
     const { contact, saveContact } = useContact({
         contactId: receiver?.uid,
         user: user
     })
 
+
     useEffect(() => {
         if (route?.params?.phoneNumber) {
-            const docRef = doc(db, 'users', route?.params?.phoneNumber)
-            getDoc(docRef).then(doc => {
-                if (doc.exists()) {
-                    setReceiver(doc.data() as IChatItem)
-                } else {
+            const queryUser = query(collection(db, 'users'), where('phoneNumber', '==', `${route?.params?.phoneNumber}`))
+            getDocs(queryUser).then(doc => {
+                if (doc.empty) {
                     setReceiver(null)
+                } else {
+                    doc.forEach((doc) => {
+                        setReceiver(doc.data() as IChatItem)
+                    })
                 }
             })
         }
@@ -112,10 +116,10 @@ const ChatItem = ({ route }: Props) => {
             return contact?.displayName
         }
         if (user) {
-            if (chatList?.owner === user.uid) {
+            if (chatList?.owner !== null && chatList?.owner === user.uid) {
                 return chatList?.receiver.phoneNumber
             }
-            return chatList?.ownerPhoneNumber
+            return chatList?.ownerPhoneNumber || receiver?.phoneNumber
         }
     }
 

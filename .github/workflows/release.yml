@@ -1,0 +1,24 @@
+name: release
+
+on:
+  push:
+    branches:
+      - master
+  merge:
+    branches:
+      - master
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: expo/expo-github-action@v5
+        with:
+          expo-version: 4.0.17
+          expo-username: ${{ secrets.EXPO_CLI_USERNAME }}
+          expo-password: ${{ secrets.EXPO_CLI_PASSWORD }}
+          eas-cli-version: 0.18.0
+      - name: Build and upload to Google Play Store
+        run: |
+          expo eas:build --platform android -e release
+          expo eas:submit --platform android --latest --non-interactive

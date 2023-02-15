@@ -16,16 +16,19 @@ const InputPrimary = (props: any) => {
                 color: '#3b5998'
             }}>{props.title}</Text>
             <TextInput
+                keyboardType={props.keyboardType}
                 value={props.value}
                 style={{
-                    height: 50,
+                    height: props.height ? props.height : 50,
                     padding: 10,
                     marginBottom: 10,
                     borderRadius: 20,
                     borderColor: '#3b5998',
                     borderWidth: 1,
-                    width: '100%'
+                    width: '100%',
                 }}
+                multiline={props.multiline}
+                textAlignVertical={props.textAlignVertical}
                 editable={!props.disabled}
                 onChangeText={props.onChangeText}
                 placeholder={props.placeholder}

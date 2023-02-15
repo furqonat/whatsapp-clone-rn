@@ -9,7 +9,7 @@ const generateRandomColor = () => {
 
 const ContactList = (props: { item: IContact, onPress?: (item: IContact) => void }) => {
     const { avatar } = useAvatar({
-        phoneNumber: props.item.phoneNumber
+        uid: props.item.phoneNumber
     })
     return (
         <Pressable

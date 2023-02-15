@@ -34,7 +34,7 @@ const Profile = () => {
     const { user } = useFirebase()
 
     const { avatar } = useAvatar({
-        phoneNumber: user?.phoneNumber
+        uid: user?.uid
     })
 
     const [displayName, setDisplayName] = useState("")

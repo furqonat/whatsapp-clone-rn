@@ -1,5 +1,5 @@
 import { collection, onSnapshot } from "firebase/firestore"
-import { useState, useEffect } from "react"
+import { useEffect, useState } from "react"
 import { ITransactions, db } from "utils"
 
 const useTransactions = (props: { userId?: string | undefined }) => {
@@ -14,7 +14,7 @@ const useTransactions = (props: { userId?: string | undefined }) => {
                 snapshots.docs.forEach((doc) => {
 
                     if (doc.data().id.includes(props?.userId)) {
-                        value.push(doc.data() as ITransactions)
+                        value.push({ ...doc.data() as ITransactions, id: doc.id })
                     }
                 })
                 setTransactions(value.sort((a, b) => {
@@ -28,7 +28,7 @@ const useTransactions = (props: { userId?: string | undefined }) => {
             return () => { }
         }
     }, [props?.userId])
-    
+
     return {
         transactions
     }

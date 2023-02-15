@@ -4,9 +4,8 @@ import { ButtonPrimary, InputPrimary } from 'components'
 import { IconButton } from 'native-base'
 import { useNavigation } from '@react-navigation/native'
 import { db, useFirebase } from 'utils'
-import { useAvatar } from 'hooks'
 import { Ionicons } from '@expo/vector-icons'
-import { doc, onSnapshot, updateDoc } from 'firebase/firestore'
+import { collection, doc, getDocs, onSnapshot, query, updateDoc, where } from 'firebase/firestore'
 import { getDownloadURL, getStorage, ref, uploadBytes } from 'firebase/storage'
 import { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 import moment from 'moment'
@@ -123,26 +122,35 @@ const ProfileDiri = () => {
     const handleSave = () => {
         if (user?.phoneNumber) {
             const storage = getStorage()
-            const docRef = doc(db, 'users', user?.phoneNumber, 'verification', user?.phoneNumber)
-            updateDoc(docRef, {
-                address: address,
-                name: name,
-                nik: nik,
-                dob: dob,
-                date: date,
-                bankName: bankName,
-                bankAccount: bankAccount,
-                bankAccountName: bankAccountName
-            }).then(() => {
-                if (imageFile) {
-                    const storageRef = ref(storage, `users/${user?.phoneNumber}/id-card`)
-                    uploadBytes(storageRef, imageFile).then(() => {
-                        getDownloadURL(storageRef).then((url) => {
-                            updateDoc(docRef, {
-                                image: url
-                            }).then(() => {
-                                console.log('success')
-                            })
+            const docRef = query(collection(db, 'users'), where('phoneNumber', '==', user?.phoneNumber))
+            getDocs(docRef).then((docData) => {
+                if (docData.empty) {
+                    console.log('No matching documents.');
+                    return;
+                } else {
+                    docData.forEach((document) => {
+                        const docRef = doc(db, 'users', document.id, 'verification', document.id)
+                        updateDoc(docRef, {
+                            address: address,
+                            name: name,
+                            nik: nik,
+                            dob: dob,
+                            date: date,
+                            bankName: bankName,
+                            bankAccount: bankAccount,
+                            bankAccountName: bankAccountName
+                        }).then(() => {
+                            if (imageFile) {
+                                const storageRef = ref(storage, `users/${user?.phoneNumber}/id-card`)
+                                uploadBytes(storageRef, imageFile).then(() => {
+                                    getDownloadURL(storageRef).then((url) => {
+                                        updateDoc(docRef, {
+                                            image: url
+                                        }).then(() => {
+                                        })
+                                    })
+                                })
+                            }
                         })
                     })
                 }

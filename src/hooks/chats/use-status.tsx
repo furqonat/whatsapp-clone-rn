@@ -1,4 +1,4 @@
-import { doc, onSnapshot } from 'firebase/firestore'
+import { collection, doc, onSnapshot, query, where } from 'firebase/firestore'
 import { useEffect, useState } from 'react'
 import { db } from 'utils'
 
@@ -7,12 +7,14 @@ const useStatus = (props: { phoneNumber?: string | null }) => {
 
     useEffect(() => {
         if (props?.phoneNumber) {
-            const dbRef = doc(db, 'users', props.phoneNumber)
-            const unsubscribe = onSnapshot(dbRef, doc => {
-                if (doc.exists()) {
-                    setStatus(doc.data()?.status)
+            const queryUser = query(collection(db, 'users'), where('phoneNumber', '==', `${props.phoneNumber}`))
+            const unsubscribe = onSnapshot(queryUser, doc => {
+                if (doc.empty) {
+                    setStatus('not found')
                 } else {
-                    setStatus(null)
+                    doc.forEach((doc) => {
+                        setStatus(doc.data().status)
+                    })
                 }
             })
             return unsubscribe

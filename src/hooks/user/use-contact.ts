@@ -1,4 +1,4 @@
-import { collection, doc, onSnapshot, setDoc } from 'firebase/firestore'
+import { collection, doc, getDocs, onSnapshot, query, setDoc, where } from 'firebase/firestore'
 import { useEffect, useState } from 'react'
 import { db, IContact, IUser } from 'utils'
 
@@ -8,12 +8,21 @@ const useContact = (props: { contactId?: string | null, user?: IUser | null }) =
 
     useEffect(() => {
         if (props?.contactId && props?.user && props?.user?.phoneNumber) {
-            const docRef = doc(db, 'users', props?.user.phoneNumber, 'contacts', props.contactId)
-            const unsubscribe = onSnapshot(docRef, snapshot => {
-                if (snapshot.exists()) {
-                    setContact(snapshot.data() as IContact)
-                } else {
+            const queryRef = query(collection(db, 'users'), where('phoneNumber', '==', props.user.phoneNumber))
+            const unsubscribe = onSnapshot(queryRef, snapshot => {
+                if (snapshot.empty) {
                     setContact(null)
+                } else {
+                    snapshot.forEach(docData => {
+                        const docRef = doc(db, 'users', docData.id, 'contacts', `${props.contactId}`)
+                        onSnapshot(docRef, docSnapshot => {
+                            if (docSnapshot.exists()) {
+                                setContact(docSnapshot.data() as IContact)
+                            } else {
+                                setContact(null)
+                            }
+                        })
+                    })
                 }
             })
             return () => unsubscribe()
@@ -24,10 +33,24 @@ const useContact = (props: { contactId?: string | null, user?: IUser | null }) =
     const saveContact = async (contact: IContact) => {
         return new Promise(async (resolve, reject) => {
             if (props?.user && props?.user?.phoneNumber) {
-                const docRef = doc(db, 'users', props?.user.phoneNumber, 'contacts', contact.uid)
-                return setDoc(docRef, contact, { merge: true }).then(() => {
-                    resolve('success')
+
+                const queryRef = query(collection(db, 'users'), where('phoneNumber', '==', props.user.phoneNumber))
+                getDocs(queryRef).then(querySnapshot => {
+                    if (querySnapshot.empty) {
+                        reject('User not found')
+                    } else {
+                        querySnapshot.forEach(docData => {
+                            const docRef = doc(db, 'users', docData.id, 'contacts', contact.uid)
+                            setDoc(docRef, contact, { merge: true }).then(() => {
+                                resolve('success')
+                            })
+                        })
+                    }
                 })
+                // const docRef = doc(db, 'users', props?.user.phoneNumber, 'contacts', contact.uid)
+                // return setDoc(docRef, contact, { merge: true }).then(() => {
+                //     resolve('success')
+                // })
             } else {
                 return reject('User not logged in')
             }
@@ -45,13 +68,22 @@ const useContacts = (props: { user?: IUser | null }) => {
 
     useEffect(() => {
         if (props?.user && props?.user?.phoneNumber) {
-            const collectionRef = collection(db, 'users', props.user.phoneNumber, 'contacts')
-            const unsubscribe = onSnapshot(collectionRef, snapshot => {
-                const contactList: IContact[] = []
-                snapshot.forEach(doc => {
-                    contactList.push(doc.data() as IContact)
-                })
-                setContacts(contactList)
+            const collectionRef = query(collection(db, 'users'), where('phoneNumber', '==', props.user.phoneNumber))
+            const unsubscribe = onSnapshot(collectionRef, querySnapshot => {
+                if (querySnapshot.empty) {
+                    setContacts([])
+                } else {
+                    querySnapshot.forEach(docData => {
+                        const docRef = collection(db, 'users', docData.id, 'contacts')
+                        onSnapshot(docRef, docSnapshot => {
+                            const contactList: IContact[] = []
+                            docSnapshot.forEach(contactDoc => {
+                                contactList.push(contactDoc.data() as IContact)
+                            })
+                            setContacts(contactList)
+                        })
+                    })
+                }
             })
             return () => unsubscribe()
         } else {

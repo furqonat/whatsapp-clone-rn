@@ -84,11 +84,17 @@ const Item = (props: {
             case 'ACTIVE':
                 return 'Aktif'
             case 'pending':
-                return 'Pending'
+                return 'Belum dibayar'
             case 'settlement':
-                return 'Sukses'
+                return 'Sudah dibayar'
             case 'expire':
                 return 'Kadaluarsa'
+            case 'done':
+                return 'Di proses Admin'
+            case 'refund':
+                return 'Refund'
+            case 'finish':
+                return 'Transaksi sukses'
             default:
                 return 'Aktif'
         }
@@ -103,6 +109,8 @@ const Item = (props: {
             case 'settlement':
                 return 'green.400'
             case 'expire':
+                return 'red.400'
+            case 'refund':
                 return 'red.400'
             default:
                 return 'blue.400'
@@ -144,14 +152,9 @@ const Item = (props: {
                         </Stack>
                     </Stack>
                     <Stack display={'flex'} >
-                        <Text color={'gray.600'} variant={'body2'}> Rp&nbsp;
-
-                            
-                               {props.transaction.transactionAmount}
-                                
-                            
-
-                        </Text> 
+                        <Text color={'gray.600'} textAlign={'right'} variant={'body2'}> Rp&nbsp;
+                            {props.transaction.transactionAmount}
+                        </Text>
 
                         <Text
                             textAlign={'right'}

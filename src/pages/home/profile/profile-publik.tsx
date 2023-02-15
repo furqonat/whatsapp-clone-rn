@@ -1,16 +1,22 @@
-import React, { useEffect, useState } from 'react'
-import { View, Text, StatusBar, Image, TextInput, TouchableOpacity } from 'react-native'
-import { IconButton, useToast } from 'native-base'
-import { useNavigation } from '@react-navigation/native'
 import { Ionicons } from '@expo/vector-icons'
-import { useAvatar, useUserInfo } from 'hooks'
-import { db, useFirebase } from 'utils'
-import { ButtonPrimary, InputPrimary } from 'components'
-import { doc, updateDoc } from 'firebase/firestore'
+import { useNavigation } from '@react-navigation/native'
+import { StackNavigationProp } from '@react-navigation/stack'
+import { InputPrimary } from 'components'
 import * as ImagePicker from 'expo-image-picker'
+import { collection, onSnapshot, query, updateDoc, where } from 'firebase/firestore'
+import { useAvatar, useUserInfo } from 'hooks'
+import { IconButton, useToast } from 'native-base'
+import { RootStackParamList } from 'pages/screens'
+import phone from 'phone'
+import React, { useEffect, useState } from 'react'
+import { Image, StatusBar, Text, TouchableOpacity, View } from 'react-native'
+import { Button } from 'react-native-paper'
+import { db, useFirebase } from 'utils'
+
+type Props = StackNavigationProp<RootStackParamList>
 
 const ProfilePublik = () => {
-    const navigation = useNavigation()
+    const navigation = useNavigation<Props>()
 
     const handleBack = () => {
         navigation.goBack()
@@ -22,31 +28,53 @@ const ProfilePublik = () => {
     const { user, reloadUser } = useFirebase()
 
     const { userInfo } = useUserInfo({
-        phoneNumber: `${user?.phoneNumber}`
+        uid: user?.uid
     })
 
     const { uploadAvatar } = useAvatar({
-        phoneNumber: user?.phoneNumber,
+        uid: user?.uid,
     })
 
-    const [displayName, setDisplayName] = useState<string | null | undefined>('')
+
     const [email, setEmail] = useState<string | null | undefined>('')
+    const [displayName, setDisplayName] = useState<string | null | undefined>('')
+    const [phoneNumber, setPhoneNumber] = useState<string>('')
+
+    const [loading, setLoading] = useState(false)
 
     useEffect(() => {
-        if (userInfo?.displayName && userInfo?.phoneNumber && userInfo?.email) {
-            setDisplayName(user?.displayName)
-            setEmail(user?.email)
-        }
+        setDisplayName(userInfo?.displayName)
+        setEmail(userInfo?.email)
+        setPhoneNumber(userInfo?.phoneNumber || '')
     }, [userInfo?.displayName, userInfo?.email])
 
     const handleSave = () => {
-        if (user?.phoneNumber) {
-            const userRef = doc(db, 'users', user?.phoneNumber)
-            updateDoc(userRef, {
-                displayName: displayName,
-                email: email,
-            })
-        }
+        setLoading(true)
+        const userRef = query(collection(db, 'users'), where('uid', '==', `${user?.uid}`))
+        onSnapshot(userRef, (querySnapshot) => {
+            if (querySnapshot.empty) {
+                toast.show({
+                    title: 'No matching User',
+                })
+                setLoading(false)
+                return
+            } else {
+                querySnapshot.forEach((doc) => {
+                    updateDoc(doc.ref, {
+                        displayName: displayName,
+                        email: email,
+                    }).then(() => {
+                        const ph = phone(phoneNumber, {
+                            country: 'ID',
+                        })
+                        setLoading(false)
+                        navigation.navigate('change_phone', {
+                            new_phone: ph.phoneNumber || phoneNumber,
+                        })
+                    })
+                })
+            }
+        })
     }
 
     const handleChangeAvatar = async () => {
@@ -179,14 +207,21 @@ const ProfilePublik = () => {
                         value={email}
                         onChangeText={(text: any) => setEmail(text)}
                         placeholder={'Masukan Email Anda'} />
-                    <InputPrimary title={'No Telpon'}
-                        disabled={true}
-                        value={user?.phoneNumber} />
-                    <ButtonPrimary
-                        onPress={handleSave}
-                        title={'Save'}
-                        px={12}
-                        py={'35%'} />
+                    <InputPrimary
+                        keyboardType='numeric'
+                        title={'No Telpon'}
+                        placeholder={'Masukan No Telpon Anda'}
+                        onChangeText={(text: any) => {
+                            setPhoneNumber(text)
+                        }}
+                        value={phoneNumber} />
+                    <Button
+                        disabled={loading}
+                        loading={loading}
+                        mode={'contained'}
+                        onPress={handleSave}>
+                        Simpan
+                    </Button>
 
                 </View>
 

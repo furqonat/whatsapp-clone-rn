@@ -18,6 +18,7 @@
             }
         },
         "release": {
+            "autoIncrement": true,
             "android": {
                 "buildType": "app-bundle"
             }

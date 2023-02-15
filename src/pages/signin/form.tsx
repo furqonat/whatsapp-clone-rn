@@ -1,14 +1,17 @@
-import { doc, updateDoc } from '@firebase/firestore'
+import { collection, doc, onSnapshot, query, updateDoc, where } from '@firebase/firestore'
 import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import * as ImagePicker from 'expo-image-picker'
 import { useAvatar } from 'hooks'
-import { Button, Center, Image, Input, Stack, VStack, useToast } from 'native-base'
+import { Center, Input, Stack, VStack, useToast } from 'native-base'
+import { Button } from 'react-native-paper'
 import React, { useEffect, useState } from 'react'
 import { IconButton } from 'react-native-paper'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { db, useFirebase } from 'utils'
+import { USER_KEY, db, useFirebase } from 'utils'
 import { RootStackParamList } from '../screens'
+import { Image } from 'react-native'
+import { setValue } from 'lib'
 
 type tabScreenProp = StackNavigationProp<RootStackParamList, 'tabbar'>
 
@@ -16,31 +19,45 @@ function Form() {
     const navigation = useNavigation<tabScreenProp>()
     const toast = useToast()
 
-    const { user, changeRoute } = useFirebase()
-    const [photo, setPhoto] = useState(user?.photoURL)
+    const { user } = useFirebase()
     const [displayName, setDisplayName] = useState(user?.displayName || '')
     const { uploadAvatar, avatar } = useAvatar({
-        phoneNumber: user?.phoneNumber,
+        uid: user?.uid,
     })
+    const [photo, setPhoto] = useState('')
+    const [loading, setLoading] = useState(false)
 
 
     const handlePress = () => {
         if (displayName?.length > 0) {
-            
-            const dbRef = doc(db, 'users', `${user?.phoneNumber}`)
-            
-            updateDoc(dbRef, {
-                displayName,
-            })
-                .then(() => {
-                    changeRoute('tabbar')
-                })
-                .catch(error => {
-                    
+            setLoading(true)
+            const queryRef = query(collection(db, 'users'), where('uid', '==', `${user?.uid}`))
+            onSnapshot(queryRef, (querySnapshot) => {
+                if (querySnapshot.empty) {
                     toast.show({
-                        title: error.message,
+                        title: 'No matching User',
                     })
-                })
+                    setLoading(false)
+                    return
+                } else {
+                    querySnapshot.forEach((doc) => {
+                        updateDoc(doc.ref, {
+                            displayName: displayName,
+                        }).then(() => {
+                            setLoading(false)
+                            setValue(USER_KEY, JSON.stringify({
+                                ...user,
+                            }))
+                            navigation.navigate('tabbar')
+                        }).catch(error => {
+                            setLoading(false)
+                            toast.show({
+                                title: error.message,
+                            })
+                        })
+                    })
+                }
+            })
         }
     }
 
@@ -49,10 +66,11 @@ function Form() {
     }
 
     useEffect(() => {
-        if (photo && photo?.length <= 0) {
-            setPhoto(`https://avatars.dicebear.com/api/avataaars/${Date.now()}.png`)
+        if (avatar) {
+            setPhoto(avatar)
         }
-    }, [photo])
+    }, [avatar])
+
 
     const handleNewAvatar = async () => {
         const result = await ImagePicker.launchImageLibraryAsync({
@@ -92,10 +110,13 @@ function Form() {
                     mt='20'
                     size='40'>
                     <Image
-                        alt={' '}
-                        size={'md'}
-                        borderRadius={100}
-                        src={`${photo}`}
+                        style={{
+                            backgroundColor: '#ccc',
+                            width: 100,
+                            height: 100,
+                            borderRadius: 50,
+                        }}
+                        source={{ uri: photo }}
                     />
                     <IconButton
                         style={{
@@ -111,6 +132,7 @@ function Form() {
                     />
                 </Center>
                 <Stack
+                    space={4}
                     direction={'column'}
                     width={'100%'}>
                     <Input
@@ -120,10 +142,10 @@ function Form() {
                     />
 
                     <Button
-                        disabled={displayName.length <= 0}
-                        onPress={handlePress}
-                        mt={'8'}
-                        size={'md'}>
+                        loading={loading}
+                        mode='contained'
+                        disabled={displayName.length <= 0 || loading}
+                        onPress={handlePress}>
                         Selesai
                     </Button>
                 </Stack>

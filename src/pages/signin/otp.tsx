@@ -1,6 +1,5 @@
 import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
-import { ButtonPrimary } from 'components'
 import { useToast } from 'native-base'
 import React, { useState } from 'react'
 import { StatusBar, StyleSheet, Text, View } from 'react-native'
@@ -8,7 +7,9 @@ import { CodeField, Cursor, useBlurOnFulfill, useClearByFocusCell } from 'react-
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useFirebase } from 'utils'
 
+import { Button } from 'react-native-paper'
 import { RootStackParamList } from '../screens'
+import { NativeStackScreenProps } from '@react-navigation/native-stack'
 
 const styles = StyleSheet.create({
     root: { padding: 20, minHeight: 300 },
@@ -38,9 +39,9 @@ const styles = StyleSheet.create({
 })
 
 type formScreenProp = StackNavigationProp<RootStackParamList, 'form'>
+type Props = NativeStackScreenProps<RootStackParamList, 'otp', 'Stack'>
 
-// TODO: implementation send verification with WhatsApp
-const Otp = () => {
+const Otp = ({ route }: Props) => {
     const navigation = useNavigation<formScreenProp>()
     const toast = useToast()
     const [value, setValue] = useState('')
@@ -49,15 +50,18 @@ const Otp = () => {
         value,
         setValue,
     })
+    const [loading, setLoading] = useState(false)
 
     const { confirmationResult, signInWithWhatsApp, verifyCode, phone } = useFirebase()
 
     const handlePress = () => {
-        if (value.length === 6) {
-            verifyCode(value, 'phone').then(_n => {
+        setLoading(true)
+        if (value.length === 6 && route?.params?.provider) {
+            verifyCode(value, route.params.provider).then(_n => {
+                setLoading(false)
                 navigation.navigate('form')
             }).catch(_error => {
-
+                setLoading(false)
                 toast.show({
                     title: 'Error',
                     description: 'Invalid code',
@@ -106,6 +110,7 @@ const Otp = () => {
                     <CodeField
                         ref={ref}
                         {...props}
+                        editable={!loading}
                         value={value}
                         onChangeText={setValue}
                         cellCount={6}
@@ -121,15 +126,19 @@ const Otp = () => {
                             </Text>
                         )}
                     />
-                    <ButtonPrimary
-                        px={10}
-                        py={'30%'}
-                        disabled={value.length < 6}
-                        onPress={handlePress}
-                        title={'Verifikasi'} />
+                    <Button
+                        style={{
+                            marginTop: 20,
+                        }}
+                        disabled={value.length !== 6 || loading}
+                        loading={loading}
+                        mode="contained"
+                        onPress={handlePress}>
+                        Verifikasi
+                    </Button>
                     {/* <Text
                         style={{
-                            marginTop:15,
+                            marginTop: 15,
                             fontSize: 16,
                             textAlign: 'center',
                         }}>
@@ -140,7 +149,8 @@ const Otp = () => {
                                 fontWeight: 'bold',
                             }}
                             onPress={() => {
-                                // signInWithWhatsApp(phone)
+                                if (phone)
+                                    signInWithWhatsApp(phone)
                             }}>
                             WhatsApp
                         </Text>

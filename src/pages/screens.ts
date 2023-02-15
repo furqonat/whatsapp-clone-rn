@@ -2,7 +2,9 @@ import { IContact } from "utils"
 
 type RootStackParamList = {
     signin: undefined
-    otp: undefined
+    otp: {
+        provider: 'phone' | 'whatsapp'
+    }
     form: undefined
     tabbar: undefined
     chat: undefined
@@ -23,6 +25,12 @@ type RootStackParamList = {
     new_transaction: {
         contact: IContact | null
     },
+    change_phone: {
+        new_phone: string
+    },
+    refund: {
+        transactionId: string
+    }
 }
 
 export type { RootStackParamList }

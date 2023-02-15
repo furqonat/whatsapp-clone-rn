@@ -100,8 +100,8 @@ const VerificationCode: React.FC<IVerification> = props => {
         }
     }
 
-    const onInputChange = (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, index: number) => {
-        const eventValue = event.target.value
+    const onInputChange = (event: string, index: number) => {
+        const eventValue = event
         /**
          * ensure we only display 1 character in the input
          * by clearing the already setted value
@@ -211,24 +211,22 @@ const VerificationCode: React.FC<IVerification> = props => {
                 <Container key={i}>
                     <Input
                         size={'small'}
-                        onChangeText={event => onInputChange(event, i)}
+                        onChangeText={event => {
+                            onInputChange(event, i)
+
+                        }}
                         onFocus={() => onInputFocus(i)}
-                        onKeyDown={(event: any) => onInputKeyDown(event, i)}
-                        onPaste={(event: any) => onInputPaste(event, i)}
+                        onKeyPress={(event: any) => onInputKeyDown(event, i)}
+                        // onPaste={(event: any) => onInputPaste(event, i)}
                         placeholder={placeholder}
-                        inputRef={ref}
-                        inputProps={{
+                        ref={ref}
+                        _input={{
                             maxLength: 1,
                         }}
-                        sx={{
+                        style={{
                             width: 40,
                             height: 40,
                             borderRadius: 2,
-                            '& input': {
-                                margin: 'auto',
-                                padding: 0,
-                                textAlign: 'center',
-                            },
                         }}
                         value={values[i]}
                     />

@@ -7,3 +7,4 @@ const encrypt = (salt: string) => {
 }
 
 export { encrypt }
+export * from './preferences'

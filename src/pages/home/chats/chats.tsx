@@ -1,23 +1,24 @@
 import BottomSheet, { BottomSheetFlatList } from '@gorhom/bottom-sheet'
 import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
+import { collection, getDocs, query, where } from 'firebase/firestore'
 import { useChats, useContacts } from 'hooks'
 import { Button, Image, Input, Modal, Stack, StatusBar, Text, VStack } from 'native-base'
 import { RootStackParamList } from 'pages/screens'
+import phone from 'phone'
 import React, { useEffect, useMemo, useRef, useState } from 'react'
-import { BackHandler, NativeSyntheticEvent, TextInputSubmitEditingEventData, View } from 'react-native'
+import { NativeSyntheticEvent, TextInputSubmitEditingEventData, View } from 'react-native'
 import { Colors, IconButton } from 'react-native-paper'
-import { IContact, db, useFirebase } from 'utils'
+import { IContact, USER_KEY, db, useFirebase } from 'utils'
 import { ChatList } from './chat-list'
 import { ContactList } from './contact-list'
-import { collection, doc, getDoc, getDocs, query, where } from 'firebase/firestore'
-import phone from 'phone'
+import { setValue } from 'lib'
 
 type signInScreenProp = StackNavigationProp<RootStackParamList, 'signin' | "chatItem" | "qr">
 
 const Chats = () => {
 
-    const [showModal, setShowModal] = useState(false);
+    const [showModal, setShowModal] = useState(false)
     const navigation = useNavigation<signInScreenProp>()
 
 
@@ -36,7 +37,16 @@ const Chats = () => {
 
     const handleLogOut = () => {
         logout().then(_ => {
-            navigation.navigate('signin')
+            setShowModal(false)
+            setValue(USER_KEY, JSON.stringify('no')).then(_ => {
+                navigation.navigate('signin')
+            }).catch(error => {
+                console.log(error)
+            })
+        }).catch((error) => {
+
+            console.error(error)
+            // console.log('error')
         })
     }
 
@@ -59,6 +69,13 @@ const Chats = () => {
             bottomSheetRef.current?.close()
             navigation.navigate('chatItem', {
                 chatId: chat[0].id,
+                phoneNumber: item.phoneNumber
+            })
+        } else {
+            const id = user?.uid + item.uid
+            bottomSheetRef.current?.close()
+            navigation.navigate('chatItem', {
+                chatId: id,
                 phoneNumber: item.phoneNumber
             })
         }
@@ -165,12 +182,14 @@ const Chats = () => {
                             size={23}
                             onPress={() => setShowModal(true)}
                         />
-                        <Modal isOpen={showModal} onClose={() => setShowModal(false)} _backdrop={{
-                            _dark: {
-                                bg: "white"
-                            },
-                            bg: "gray.700"
-                        }}>
+                        <Modal
+                            isOpen={showModal}
+                            onClose={() => setShowModal(false)} _backdrop={{
+                                _dark: {
+                                    bg: "white"
+                                },
+                                bg: "gray.700"
+                            }}>
                             <Modal.Content alignItems={'center'} py={4} maxWidth="350" maxH="212">
                                 <Image
                                     size={20}

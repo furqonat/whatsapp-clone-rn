@@ -10,7 +10,7 @@ import { IContact, ITransactions, db, useFirebase } from "utils"
 import { ContactList } from '../chats/contact-list'
 import { TransactionItem } from './transaction-item'
 import { TransactionList } from './transaction-list'
-import { doc, getDoc } from 'firebase/firestore'
+import { collection, doc, getDoc, getDocs, query, where } from 'firebase/firestore'
 
 type signInScreenProp = StackNavigationProp<RootStackParamList, 'signin'>
 
@@ -42,19 +42,23 @@ const Transaction = () => {
     }
 
     const handleOnContactPress = (item: IContact) => {
-        const docRef = doc(db, 'users', `${item?.phoneNumber}`)
-        getDoc(docRef).then((doc) => {
-            if (doc.exists() && doc.data()?.isIDCardVerified === true) {
-                bsRef.current?.close()
-                navigation.navigate('new_transaction', {
-                    contact: item
-                })
+        const userRef = query(collection(db, 'users'), where('phoneNumber', '==', item.phoneNumber))
+        getDocs(userRef).then(snapshot => {
+            if (snapshot.empty) {
+                alert("Nomor yang anda pilih belum terdaftar. Beri tahu mereka untuk mendaftar terlebih dahulu untuk dapat melakukan transaksi")
+                return
             } else {
-                alert("Nomor yang anda pilih belum terverifikasi. Beri tahu mereka untuk melakukan verifikasi terlebih dahulu untuk dapat melakukan transaksi")
+                snapshot.forEach(doc => {
+                    if (doc.data()?.isIDCardVerified === true) {
+                        bsRef.current?.close()
+                        navigation.navigate('new_transaction', {
+                            contact: item
+                        })
+                    } else {
+                        alert("Nomor yang anda pilih belum terverifikasi. Beri tahu mereka untuk melakukan verifikasi terlebih dahulu untuk dapat melakukan transaksi")
+                    }
+                })
             }
-        }).catch((error) => {
-            console.log("Error getting document:", error);
-            alert("Ada kesalahan silahkan coba lagi")
         })
     }
 

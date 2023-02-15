@@ -96,7 +96,7 @@ const Item: React.FC<{
     const { user } = useFirebase()
     const { contact } = useContact({ user: user, contactId: user?.uid === call.caller.uid ? call.receiver.uid : call.caller.uid })
     const { userInfo } = useUserInfo({
-        phoneNumber: user?.uid === call.caller.uid ? call.receiver.phoneNumber : call.caller.phoneNumber
+        uid: user?.uid === call.caller.uid ? call.receiver.phoneNumber : call.caller.phoneNumber
     })
 
     const getOwnerDisplayNameOrPhoneNumber = () => {

@@ -1,15 +1,15 @@
 import { NavigationContainer } from '@react-navigation/native'
 import { createStackNavigator } from '@react-navigation/stack'
-import { useChangeRoute } from 'hooks'
-import { VStack, Image } from 'native-base'
-import { ChatItem, Form, MyTabs, NewTransaction, Otp, Privasi, ProfileDiri, ProfilePublik, QrCamera, SignIn, TentangKami, Transaction } from 'pages'
+import { getValue } from 'lib'
+import { Image, VStack } from 'native-base'
+import { ChangePhone, ChatItem, Form, MyTabs, NewTransaction, Otp, Privasi, ProfileDiri, ProfilePublik, QrCamera, Refund, SignIn, TentangKami } from 'pages'
 import { RootStackParamList } from 'pages/screens'
 import { useEffect, useState } from 'react'
-import { useFirebase } from 'utils'
+import { USER_KEY } from 'utils'
 
 const Stack = createStackNavigator<RootStackParamList>()
 
-const loading = (
+const Loading = (
     <VStack
         height={'100%'}
         justifyContent={'center'}
@@ -26,23 +26,27 @@ const loading = (
 const Main = () => {
     const [indexScreen, setIndexScreen] = useState<'signin' | 'tabbar'>('signin')
 
-    const {user, isLoading, currentRoute } = useFirebase()
+    const [loading, setLoading] = useState(true)
 
     useEffect(() => {
+        setLoading(true)
         // if current route is not signin, otp, or form and user is not null, set index screen to tabbar
         // else set index screen to signin
-        if (user) {
-            setIndexScreen('tabbar')
-        } else {
-            setIndexScreen('signin')
-        }
-        
-    }, [user])
+        getValue(USER_KEY).then((user) => {
+            if (user && typeof user === 'string' && user.length > 20) {
+                setIndexScreen('tabbar')
+                setLoading(false)
+            } else {
+                setIndexScreen('signin')
+                setLoading(false)
+            }
+        })
 
-    if (isLoading) {
-        return loading
+    }, [])
+
+    if (loading) {
+        return Loading
     }
-
 
     return (
         <NavigationContainer>
@@ -65,6 +69,9 @@ const Main = () => {
                 <Stack.Screen
                     options={{ headerShown: false }}
                     name='otp'
+                    initialParams={{
+                        provider: 'phone',
+                    }}
                     component={Otp}
                 />
                 <Stack.Screen
@@ -108,6 +115,20 @@ const Main = () => {
                     name='privasi'
                     component={Privasi}
                 />
+                <Stack.Screen
+                    name={'change_phone'}
+                    component={ChangePhone}
+                    initialParams={{
+                        new_phone: '',
+                    }}
+                    options={{ headerShown: false }} />
+                <Stack.Screen
+                    name={'refund'}
+                    component={Refund}
+                    initialParams={{
+                        transactionId: '',
+                    }}
+                    options={{ headerShown: false }} />
             </Stack.Navigator>
         </NavigationContainer>
     )

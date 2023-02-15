@@ -1,11 +1,11 @@
-import { doc, getDoc, updateDoc } from '@firebase/firestore'
+import { collection, doc, getDoc, getDocs, onSnapshot, query, updateDoc, where } from '@firebase/firestore'
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from '@firebase/storage'
 import { useToast } from 'native-base'
 import { useEffect, useState } from 'react'
 import { db } from 'utils'
 
-const useAvatar = (props: { phoneNumber?: string | null }) => {
-    const { phoneNumber } = props
+const useAvatar = (props: { uid?: string | null }) => {
+    const { uid } = props
     const toast = useToast()
     const toastId = 'avatar'
 
@@ -15,26 +15,32 @@ const useAvatar = (props: { phoneNumber?: string | null }) => {
 
     // get an avatar from firebase collection of users
     useEffect(() => {
-        if (phoneNumber) {
+        if (uid) {
             setLoading(true)
-            const dbRef = doc(db, 'users', phoneNumber)
-            getDoc(dbRef)
-                .then(doc => {
-                    if (doc.exists()) {
-                        setAvatar(doc.data().photoURL)
-                        setLoading(false)
+            const dbRef = query(collection(db, 'users'), where('uid', '==', uid))
+            onSnapshot(dbRef, querySnapshot => {
+                if (querySnapshot.empty) {
+                    if (!toast.isActive(toastId)) {
+                        toast.show({
+                            id: toastId,
+                            title: 'No such user'
+                        })
                     }
-                })
-                .finally(() => {
                     setLoading(false)
-                })
+                } else {
+                    querySnapshot.forEach(doc => {
+                        setAvatar(doc.data().photoURL)
+                    })
+                    setLoading(false)
+                }
+            })
         }
-    }, [phoneNumber])
+    }, [uid])
 
     const uploadAvatar = (file: File): Promise<void> => {
         return new Promise<void>((resolve, reject) => {
             const storage = getStorage()
-            const storageRef = ref(storage, `${phoneNumber}/avatar/${file.name}`)
+            const storageRef = ref(storage, `${uid}/avatar/${file.name}`)
             const task = uploadBytesResumable(storageRef, file)
             task.on(
                 'state_changed',
@@ -53,13 +59,28 @@ const useAvatar = (props: { phoneNumber?: string | null }) => {
                 () => {
                     getDownloadURL(task.snapshot.ref).then(downloadURL => {
                         setAvatar(downloadURL)
-                        const dbRef = doc(db, 'users', `${phoneNumber}`)
-                        updateDoc(dbRef, {
-                            photoURL: downloadURL,
-                        }).then(() => {
-                            resolve()
-                        }).catch(() => {
-                            reject()
+                        const dbRef = query(collection(db, 'users'), where('uid', '==', uid))
+                        getDocs(dbRef).then(querySnapshot => {
+                            if (querySnapshot.empty) {
+                                if (!toast.isActive(toastId)) {
+                                    toast.show({
+                                        id: toastId,
+                                        title: 'No such user',
+                                    })
+                                }
+                                return
+                            } else {
+                                querySnapshot.forEach(doc => {
+                                    updateDoc(doc.ref, {
+                                        photoURL: downloadURL,
+                                    }).then(() => {
+                                        resolve()
+                                    }).catch(() => {
+                                        reject()
+                                    })
+                                })
+
+                            }
                         })
                     })
                 }

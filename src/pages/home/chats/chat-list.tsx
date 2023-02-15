@@ -1,13 +1,12 @@
 import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
-import { doc, getDoc } from 'firebase/firestore'
 import { useAvatar, useContact } from 'hooks'
 import moment from 'moment'
 import { FlatList, Modal } from 'native-base'
 import { RootStackParamList } from 'pages/screens'
 import React, { useState } from 'react'
 import { Image, Text, TouchableOpacity, View } from 'react-native'
-import { IChatList, db, useFirebase } from 'utils'
+import { IChatList, useFirebase } from 'utils'
 
 type ChatItem = StackNavigationProp<RootStackParamList>
 
@@ -28,7 +27,7 @@ const ChatListItem = (props: { item: IChatList }) => {
     const { user } = useFirebase()
 
     const { avatar } = useAvatar({
-        phoneNumber: user?.uid === item.owner ? item.receiver?.phoneNumber : item.ownerPhoneNumber,
+        uid: user?.uid === item.owner ? item.receiver?.uid : item.owner,
     })
 
     const { contact } = useContact({
@@ -37,7 +36,7 @@ const ChatListItem = (props: { item: IChatList }) => {
     })
 
     const navigation = useNavigation<ChatItem>()
-    
+
     const getDisplayName = () => {
         if (contact) {
             return contact?.displayName
@@ -55,14 +54,9 @@ const ChatListItem = (props: { item: IChatList }) => {
     }
 
     const handleOnPress = (phoneNumber: string) => {
-        const docRef = doc(db, 'users', phoneNumber)
-        getDoc(docRef).then(doc => {
-            if (doc.exists()) {
-                navigation.navigate('chatItem', {
-                    chatId: item.id,
-                    phoneNumber: phoneNumber,
-                })
-            }
+        navigation.navigate('chatItem', {
+            chatId: item.id,
+            phoneNumber: phoneNumber,
         })
     }
     const [showModal, setShowModal] = useState(false);

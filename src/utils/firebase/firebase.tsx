@@ -2,17 +2,20 @@ import { initializeApp } from '@firebase/app'
 import {
     ApplicationVerifier,
     ConfirmationResult,
+    User,
     getAuth,
     getIdToken,
+    onAuthStateChanged,
     signInWithCustomToken,
     signInWithPhoneNumber,
     signOut,
-    User,
-    onAuthStateChanged
+    updatePhoneNumber,
+    PhoneAuthProvider,
 } from '@firebase/auth'
-import { doc, getDoc, getFirestore, onSnapshot, setDoc, updateDoc } from '@firebase/firestore'
+import { collection, doc, getDoc, getDocs, getFirestore, onSnapshot, query, setDoc, updateDoc, where } from '@firebase/firestore'
 import axios from 'axios'
-import Constants from 'expo-constants'
+import { setValue } from 'lib'
+import { phone as P } from 'phone'
 import React, { createContext, useContext, useEffect, useState } from 'react'
 import { IUser } from 'utils'
 
@@ -29,6 +32,8 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig)
 const auth = getAuth(app)
 const db = getFirestore(app)
+
+export const USER_KEY = 'user'
 
 const formatUser = (user: IUser) => {
     return {
@@ -56,19 +61,28 @@ const firebaseApp = () => {
         const unsubscribe = onAuthStateChanged(auth, user => {
             setIsloading(true)
             if (user) {
-                const dbRef = doc(db, 'users', `${user.phoneNumber}`)
-                onSnapshot(dbRef, (docs) => {
-                    if (docs.exists()) {
-                        const data = docs.data()
-                        const formattedUser = formatUser(data as IUser)
-                        setUser(formattedUser)
-                        setIsloading(false)
-                    } else {
+                const userRef = query(collection(db, 'users'), where('phoneNumber', '==', user.phoneNumber))
+                onSnapshot(userRef, (docs) => {
+                    if (docs.empty) {
                         setUser(null)
                         setIsloading(false)
+                    } else {
+                        docs.forEach(docData => {
+                            if (docData.exists()) {
+                                const data = docData.data()
+                                const formattedUser = formatUser(data as IUser)
+                                setUser(formattedUser)
+                                setIsloading(false)
+                            } else {
+                                setUser(null)
+                                setIsloading(false)
+                            }
+                        })
                     }
+                }, (error) => {
+                    setUser(null)
+                    setIsloading(false)
                 })
-
             } else {
                 setIsloading(false)
                 setUser(null)
@@ -77,58 +91,67 @@ const firebaseApp = () => {
 
         return () => {
             unsubscribe()
-            setIsloading(false)
         }
     }, [])
 
 
     const reloadUser = async () => {
-        getDoc(doc(db, 'users', `${user?.phoneNumber}`)).then(doc => {
-            const formattedUser = formatUser(doc.data() as IUser)
-            setUser(formattedUser)
-        })
+        const docRef = query(collection(db, 'users'), where('uid', '==', user?.uid))
+        const data = await getDocs(docRef)
+        if (data.empty) {
+            return
+        } else {
+            data.forEach(doc => {
+                if (doc.exists()) {
+                    const formattedUser = formatUser(doc.data() as IUser)
+                    setUser(formattedUser)
+                }
+            })
+        }
     }
 
     const assignUser = async (user: User) => {
-        const dbRef = getFirestore(app)
-        const docRef = doc(dbRef, 'users', `${user.phoneNumber}`)
-        const data = await getDoc(docRef)
+
         return new Promise<void>((resolve, reject) => {
-            if (data.exists()) {
-                updateDoc(docRef, {
-                    lastLogin: new Date().toLocaleDateString(),
-                }).then(() => {
-                    getDoc(docRef).then(doc => {
-                        const formattedUser = formatUser(doc.data() as IUser)
-                        setUser(formattedUser)
-                        resolve()
+            const reference = query(collection(db, 'users'), where('phoneNumber', '==', user.phoneNumber))
+            getDocs(reference).then((docs) => {
+                if (docs.empty) {
+                    const docRef = doc(collection(db, 'users'))
+                    setDoc(docRef, {
+                        phoneNumber: user.phoneNumber,
+                        uid: user.uid,
+                        displayName: user.displayName,
+                        photoURL: user.photoURL,
+                        email: user.email,
+                        emailVerified: user.emailVerified,
+                        isIDCardVerified: false,
+                        lastLogin: new Date().toLocaleDateString(),
+                    }).then(() => {
+                        getDoc(docRef).then(doc => {
+                            const formattedUser = formatUser(doc.data() as IUser)
+                            setUser(formattedUser)
+                            resolve()
+                        })
+                    }).catch(error => {
+                        reject(error)
                     })
-                }).catch(error => {
-
-                    reject(error)
-                })
-            } else {
-                setDoc(doc(dbRef, 'users', user.phoneNumber!!), {
-                    phoneNumber: user.phoneNumber,
-                    uid: user.uid,
-                    displayName: user.displayName,
-                    photoURL: user.photoURL,
-                    email: user.email,
-                    emailVerified: user.emailVerified,
-                    isIDCardVerified: false,
-                    lastLogin: new Date().toLocaleDateString(),
-                }).then(() => {
-                    // nextPage && navigate(nextPage)
-                    getDoc(docRef).then(doc => {
-                        const formattedUser = formatUser(doc.data() as IUser)
-                        setUser(formattedUser)
-                        resolve()
+                } else {
+                    docs.forEach(docData => {
+                        const docRef = docData.ref
+                        updateDoc(docRef, {
+                            lastLogin: new Date().toLocaleDateString(),
+                        }).then(() => {
+                            getDoc(docRef).then(doc => {
+                                const formattedUser = formatUser(doc.data() as IUser)
+                                setUser(formattedUser)
+                                resolve()
+                            })
+                        }).catch(error => {
+                            reject(error)
+                        })
                     })
-                }).catch(error => {
-
-                    reject(error)
-                })
-            }
+                }
+            })
         })
     }
 
@@ -141,63 +164,69 @@ const firebaseApp = () => {
     const signInWithWhatsApp = async (phoneNumber: string) => {
         setPhone(phoneNumber)
         // send message to whatsapp
-        const code = Math.floor(100000 + Math.random() * 900000)
-        const sendMessage = await axios.post(
-            `${Constants.FB_BASE_URL}/${Constants.PHONE_NUMBER_ID}/messages`,
-            {
-                messaging_product: 'whatsapp',
-                to: phoneNumber.replace('+', ''),
-                type: 'template',
-                template: {
-                    language: {
-                        code: 'id',
-                    },
-                    name: 'verifikasi',
-                    components: [
-                        {
-                            type: 'body',
-                            parameters: [
-                                {
-                                    type: 'text',
-                                    text: code,
-                                },
-                            ],
+        return new Promise<void>((resolve, reject) => {
+            const phoneNum = P(phoneNumber, {
+                country: 'ID',
+            })
+            const code = Math.floor(100000 + Math.random() * 900000)
+            axios.post(
+                `${process.env.FB_BASE_URL}/${process.env.PHONE_NUMBER_ID}/messages`,
+                {
+                    messaging_product: 'whatsapp',
+                    to: phoneNum.phoneNumber?.replace('+', ''),
+                    type: 'template',
+                    template: {
+                        language: {
+                            code: 'id',
                         },
-                    ],
+                        name: 'verifikasi',
+                        components: [
+                            {
+                                type: 'body',
+                                parameters: [
+                                    {
+                                        type: 'text',
+                                        text: code,
+                                    },
+                                ],
+                            },
+                        ],
+                    },
                 },
-            },
-            {
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${Constants.FB_TOKEN}`,
-                },
-            }
-        )
-        if (sendMessage.status === 200) {
-            setVerificationCode(code)
-        }
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${process.env.FB_TOKEN}`,
+                    },
+                }
+            ).then((res) => {
+                if (res.status === 200) {
+                    setVerificationCode(code)
+                    resolve()
+                }
+            }).catch((err) => {
+                reject(err)
+            })
+        })
     }
 
     const verifyCode = async (code: string, provider: 'phone' | 'whatsapp') => {
         if (provider === 'phone') {
-
             if (confirmationResult) {
                 return new Promise<void>((resolve, reject) => {
                     confirmationResult
                         .confirm(code)
                         .then(async result => {
                             await assignUser(result.user)
-                            axios
-                                .post(`${process.env.SERVER_URL}api/v1/claims`, {
-                                    token: await getIdToken(result.user),
-                                    phoneNumber: phone,
-                                })
+                            axios.post(`${process.env.SERVER_URL}api/v1/claims`, {
+                                token: await getIdToken(result.user),
+                                phoneNumber: phone,
+                            })
                                 .then(async res => {
                                     if (res.status === 200) {
                                         await getIdToken(result.user, true)
                                         await assignUser(result.user)
                                         resolve(res.data)
-                                        // setUser(formatUser(result.user))
                                     }
                                 })
                         })
@@ -209,7 +238,7 @@ const firebaseApp = () => {
         } else if (provider === 'whatsapp') {
             if (verificationCode === parseInt(code)) {
                 new Promise<void>(async (resolve, reject): Promise<void> => {
-                    const wa = await axios.post(`${Constants.SERVER_URL}/whatsapp`, {
+                    const wa = await axios.post(`${process.env.SERVER_URL}/whatsapp`, {
                         phoneNumber: phone,
                     })
                     if (wa.status === 200) {
@@ -217,7 +246,7 @@ const firebaseApp = () => {
                         signInWithCustomToken(auth, wa.data.token).then(async result => {
                             assignUser(result.user)
                             axios
-                                .post(`${Constants.SERVER_URL}/claims`, {
+                                .post(`${process.env.SERVER_URL}/claims`, {
                                     token: await getIdToken(result.user),
                                     phoneNumber: phone,
                                 })
@@ -252,16 +281,59 @@ const firebaseApp = () => {
     }
 
     const logout = async () => {
-        const dbRef = doc(db, 'users', user?.phoneNumber!!)
-        return updateDoc(dbRef, {
-            status: new Date().toISOString(),
-        }).then(() => {
-            signOut(auth)
+        return new Promise<void>((resolve, reject) => {
+            signOut(auth).then(() => {
+                setUser(null)
+                setValue(USER_KEY, null)
+                const queryUser = query(collection(db, 'users'), where('uid', '==', user?.uid))
+                getDocs(queryUser).then((querySnapshot) => {
+                    if (querySnapshot.empty) {
+                        reject('User not found')
+                    } else {
+                        querySnapshot.forEach((doc) => {
+                            updateDoc(doc.ref, {
+                                lastLogin: new Date().toISOString(),
+                            })
+                        })
+                        resolve()
+                    }
+                })
+            }).catch(error => {
+                reject(error)
+            })
         })
     }
 
     const changeRoute = (route: string) => {
         setCurrentRoute(route)
+    }
+
+    const changePhoneNumber = async (phoneNumber: string, code: string, recaptchaVerifier: ApplicationVerifier) => {
+        return new Promise<void>((resolve, reject) => {
+            new PhoneAuthProvider(auth).verifyPhoneNumber(phoneNumber, recaptchaVerifier).then((confirmationResult) => {
+                const phoneCredential = PhoneAuthProvider.credential(confirmationResult, code)
+                const currentUser = getAuth().currentUser
+                if (currentUser) {
+                    updatePhoneNumber(currentUser, phoneCredential).then(() => {
+                        const queryUser = query(collection(db, 'users'), where('uid', '==', user?.uid))
+                        getDocs(queryUser).then((querySnapshot) => {
+                            querySnapshot.forEach((doc) => {
+                                updateDoc(doc.ref, {
+                                    phoneNumber: phoneNumber,
+                                }).then(() => {
+                                    reloadUser()
+                                })
+                            })
+                        })
+                        resolve()
+                    }).catch(err => {
+                        reject(err)
+                    })
+                }
+            }).catch(err => {
+                reject(err)
+            })
+        })
     }
 
     return {
@@ -276,7 +348,8 @@ const firebaseApp = () => {
         isLoading,
         reloadUser,
         currentRoute,
-        changeRoute
+        changeRoute,
+        changePhoneNumber,
     }
 }
 
@@ -292,7 +365,8 @@ const FirebaseContext = createContext({
     isLoading: true,
     reloadUser: async () => { },
     currentRoute: "",
-    changeRoute: (_route: string) => { }
+    changeRoute: (_route: string) => { },
+    changePhoneNumber: async (_phoneNumber: string, _code: string, _recaptchaVerifier: ApplicationVerifier) => { },
 })
 
 const FirebaseProvider = (props: { children?: React.ReactNode }) => {

@@ -8,7 +8,7 @@ import { Button, IconButton, Input, Modal, Radio, Select, Stack, Text, VStack } 
 import { RootStackParamList } from "pages/screens"
 import React, { useState } from "react"
 import { GestureResponderEvent } from 'react-native'
-import { db, TransactionObject, useFirebase } from "utils"
+import { TransactionObject, db, useFirebase } from "utils"
 
 type Props = NativeStackScreenProps<RootStackParamList, 'new_transaction', 'Stack'>
 
@@ -128,14 +128,12 @@ const NewTransaction = (props: Props) => {
                     setIsLoading(false)
                 }).catch(() => {
                     setIsLoading(false)
-                    console.log('error')
                     // setOpenDialog(false)
                     // onDone && onDone(false)
                     alert('Gagal membuat transaksi, silahkan coba lagi')
                 })
             }
         }).catch((error) => {
-            console.log('error', error)
             alert('Gagal membuat transaksi, silahkan hubungi admin')
             // setOpenDialog(false)
             // onDone && onDone(false)
@@ -266,7 +264,11 @@ const NewTransaction = (props: Props) => {
                 <Modal
                     safeAreaTop={true}
                     isOpen={alertDialog}
-                    onClose={() => setAlertDialog(false)}>
+                    onClose={() => {
+                        if (!isLoading) {
+                            setAlertDialog(false)
+                        }
+                    }}>
                     <Modal.Content>
                         <Modal.CloseButton />
                         <Modal.Header>

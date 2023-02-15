@@ -1,24 +1,28 @@
-import { doc, getDoc } from 'firebase/firestore'
+import { collection, doc, getDoc, onSnapshot, query, where } from 'firebase/firestore'
 import { useState, useEffect } from 'react'
 import { IUser, db } from 'utils'
 
-const useUserInfo = (props: { phoneNumber?: string }) => {
-    const { phoneNumber } = props
+const useUserInfo = (props: { uid?: string }) => {
+    const { uid } = props
     const [userInfo, setUserInfo] = useState<IUser | null>(null)
 
     useEffect(() => {
-        if (phoneNumber) {
-            const docRef = doc(db, 'users', phoneNumber)
-            const unsubscribe = getDoc(docRef).then(doc => {
-                if (doc.exists()) {
-                    setUserInfo(doc.data() as IUser)
+        if (uid) {
+            const docRef = query(collection(db, 'users'), where('uid', '==', uid))
+            const unsubscribe = onSnapshot(docRef, querySnapshot => {
+                if (querySnapshot.empty) {
+                    setUserInfo(null)
+                } else {
+                    querySnapshot.forEach(doc => {
+                        setUserInfo(doc.data() as IUser)
+                    })
                 }
             })
             return () => unsubscribe
         } else {
             return () => {}
         }
-    }, [phoneNumber])
+    }, [uid])
 
     return { userInfo }
 }
