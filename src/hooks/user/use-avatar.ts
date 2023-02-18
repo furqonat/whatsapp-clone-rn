@@ -1,11 +1,11 @@
-import { collection, doc, getDoc, getDocs, onSnapshot, query, updateDoc, where } from '@firebase/firestore'
-import { getStorage, ref, uploadBytesResumable, getDownloadURL } from '@firebase/storage'
+import { collection, getDocs, onSnapshot, query, updateDoc, where } from '@firebase/firestore'
+import { getDownloadURL, getStorage, ref, uploadBytesResumable } from '@firebase/storage'
 import { useToast } from 'native-base'
 import { useEffect, useState } from 'react'
 import { db } from 'utils'
 
 const useAvatar = (props: { uid?: string | null }) => {
-    const { uid } = props
+    const {uid} = props
     const toast = useToast()
     const toastId = 'avatar'
 
@@ -20,12 +20,6 @@ const useAvatar = (props: { uid?: string | null }) => {
             const dbRef = query(collection(db, 'users'), where('uid', '==', uid))
             onSnapshot(dbRef, querySnapshot => {
                 if (querySnapshot.empty) {
-                    if (!toast.isActive(toastId)) {
-                        toast.show({
-                            id: toastId,
-                            title: 'No such user'
-                        })
-                    }
                     setLoading(false)
                 } else {
                     querySnapshot.forEach(doc => {
@@ -62,24 +56,19 @@ const useAvatar = (props: { uid?: string | null }) => {
                         const dbRef = query(collection(db, 'users'), where('uid', '==', uid))
                         getDocs(dbRef).then(querySnapshot => {
                             if (querySnapshot.empty) {
-                                if (!toast.isActive(toastId)) {
-                                    toast.show({
-                                        id: toastId,
-                                        title: 'No such user',
-                                    })
-                                }
-                                return
+                                reject(new Error('User not found'))
                             } else {
                                 querySnapshot.forEach(doc => {
                                     updateDoc(doc.ref, {
                                         photoURL: downloadURL,
-                                    }).then(() => {
-                                        resolve()
-                                    }).catch(() => {
-                                        reject()
                                     })
+                                        .then(() => {
+                                            resolve()
+                                        })
+                                        .catch(error => {
+                                            reject(error)
+                                        })
                                 })
-
                             }
                         })
                     })

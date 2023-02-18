@@ -1,12 +1,8 @@
 import { createMaterialBottomTabNavigator } from '@react-navigation/material-bottom-tabs'
+import { Calls, Chats, Profile, Transaction } from 'pages'
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons'
-import { Calls } from './calls'
-import { Chats } from './chats'
-import { Profile } from './profile'
-import { Transaction } from './transaction'
 
 const Tab = createMaterialBottomTabNavigator()
-
 
 function MyTabs() {
     return (
@@ -75,4 +71,3 @@ function MyTabs() {
 }
 
 export { MyTabs }
-

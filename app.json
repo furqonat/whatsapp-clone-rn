@@ -39,7 +39,7 @@
         "android.permission.ACCESS_NETWORK_STATE"
       ],
       "package": "com.rekberindo.app",
-      "versionCode": 3
+      "versionCode": 4
     },
     "web": {
       "favicon": "./src/assets/favicon.png"
