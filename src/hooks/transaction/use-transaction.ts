@@ -1,14 +1,13 @@
-import { collection, onSnapshot } from "firebase/firestore"
-import { useEffect, useState } from "react"
-import { ITransactions, db } from "utils"
+import firestore from '@react-native-firebase/firestore'
+import { useEffect, useState } from 'react'
+import { ITransactions } from 'utils'
 
 const useTransactions = (props: { userId?: string | undefined }) => {
-
     const [transactions, setTransactions] = useState<ITransactions[] | null>(null)
 
     useEffect(() => {
         if (props?.userId) {
-            const refs = collection(db, 'transactions')
+            /*const refs = collection(db, 'transactions')
             const subscribe = onSnapshot(refs, (snapshots) => {
                 const value: ITransactions[] = []
                 snapshots.docs.forEach((doc) => {
@@ -23,16 +22,31 @@ const useTransactions = (props: { userId?: string | undefined }) => {
             })
             return () => {
                 subscribe()
-            }
+            }*/
+            const unsubscribe = firestore()
+                .collection('transactions')
+                .onSnapshot(querySnapshot => {
+                    const value: ITransactions[] = []
+                    querySnapshot.docs.forEach(doc => {
+                        if (doc.data().id.includes(props?.userId)) {
+                            value.push({ ...(doc.data() as ITransactions), id: doc.id })
+                        }
+                    })
+                    setTransactions(
+                        value.sort((a, b) => {
+                            return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+                        })
+                    )
+                })
+            return () => unsubscribe
         } else {
-            return () => { }
+            return () => {}
         }
     }, [props?.userId])
 
     return {
-        transactions
+        transactions,
     }
-
 }
 
 export { useTransactions }

@@ -17,29 +17,34 @@ const QrCamera = () => {
             setHasPermission(status === 'granted')
         }
 
-        getBarCodeScannerPermissions()
+        getBarCodeScannerPermissions().then(r => {
+            console.log('r', r)
+        })
     }, [])
 
     const handleBarCodeScanned = (data: any) => {
         const hash = encrypt(`${SALT_KEY}`)
-
+        console.log('runn')
         const value = JSON.stringify({
             phoneNumber: user?.phoneNumber,
             verificationId: data.data,
         }).toString()
-        axios.post(`${BACKEND_URL}api/v1/qr-code/`, {
-            encrypted: hash(value),
-        }).then(() => {
-            setScanned(true)
-        }).catch(err => {
-
-        })
+        axios
+            .post(`${BACKEND_URL}api/v1/qr-code/`, {
+                encrypted: hash(value),
+            })
+            .then((res) => {
+                console.log(res.data)
+                console.log('oke')
+                setScanned(true)
+            })
+            .catch(() => { })
     }
 
     if (hasPermission === null) {
         return <Text>Requesting for camera permission</Text>
     }
-    if (hasPermission === false) {
+    if (!hasPermission) {
         return <Text>No access to camera</Text>
     }
 
@@ -49,13 +54,12 @@ const QrCamera = () => {
                 onBarCodeScanned={scanned ? undefined : handleBarCodeScanned}
                 style={StyleSheet.absoluteFillObject}
             />
-            {
-                scanned && (
-                    <Button
-                        title={'Tap to Scan Again'}
-                        onPress={() => setScanned(false)}
-                    />
-                )}
+            {scanned && (
+                <Button
+                    title={'Tap to Scan Again'}
+                    onPress={() => setScanned(false)}
+                />
+            )}
         </View>
     )
 }

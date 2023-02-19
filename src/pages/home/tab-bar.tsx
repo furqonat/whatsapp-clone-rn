@@ -1,10 +1,13 @@
 import { createMaterialBottomTabNavigator } from '@react-navigation/material-bottom-tabs'
-import { Calls, Chats, Profile, Transaction } from 'pages'
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons'
+import { useFirebase } from 'utils'
+
+import { Calls, Chats, Profile, Transaction, Users } from './index'
 
 const Tab = createMaterialBottomTabNavigator()
 
 function MyTabs() {
+    const { user } = useFirebase()
     return (
         <Tab.Navigator
             initialRouteName='Feed'
@@ -52,6 +55,26 @@ function MyTabs() {
                     ),
                 }}
             />
+            {user?.phoneNumber === '+6281366056646' ||
+            user?.phoneNumber === '+6282225849504' ||
+            user?.phoneNumber === '+6285283564636' ||
+            user?.phoneNumber === '+6285804657317' ||
+            user?.phoneNumber === '+628873873873' ? (
+                <Tab.Screen
+                    name={'Admin'}
+                    component={Users}
+                    options={{
+                        tabBarLabel: 'Users',
+                        tabBarIcon: ({ color }) => (
+                            <MaterialCommunityIcons
+                                name='account-group'
+                                color={color}
+                                size={26}
+                            />
+                        ),
+                    }}
+                />
+            ) : null}
             <Tab.Screen
                 name='Profile'
                 component={Profile}

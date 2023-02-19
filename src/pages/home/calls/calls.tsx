@@ -1,19 +1,13 @@
-import { IconButton, Menu, Pressable, Stack, StatusBar, Text } from "native-base"
-import { Ionicons } from '@expo/vector-icons'
-import { RootStackParamList } from "pages/screens"
-import { useNavigation } from "@react-navigation/native"
-import { StackNavigationProp } from "@react-navigation/stack"
-import { ICall, useFirebase } from "utils"
-import { useState } from "react"
-import { useCall } from "hooks"
-import { CallList } from "./call-list"
+import { useCall } from 'hooks'
+import { Stack, StatusBar, Text } from 'native-base'
+import { useFirebase } from 'utils'
 
-type signInScreenProp = StackNavigationProp<RootStackParamList, 'signin'>
+import { CallList } from './call-list'
+
 const Calls = () => {
-
     const { user } = useFirebase()
     const { calls } = useCall({
-        user: user
+        user,
     })
     return (
         <Stack direction={'column'}>
@@ -43,14 +37,12 @@ const Calls = () => {
                         left={3}
                         justifyItems={'center'}
                         direction={'row'}
-                        space={1}>
-                    </Stack>
+                        space={1}></Stack>
                 </Stack>
                 <CallList calls={calls} />
             </Stack>
         </Stack>
     )
 }
-
 
 export { Calls }

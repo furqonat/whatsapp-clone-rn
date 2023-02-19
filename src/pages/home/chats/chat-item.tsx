@@ -1,23 +1,23 @@
 import { Ionicons, MaterialIcons } from '@expo/vector-icons'
+import firestore from '@react-native-firebase/firestore'
 import { useNavigation } from '@react-navigation/native'
 import type { NativeStackScreenProps } from '@react-navigation/native-stack'
 import { StackNavigationProp } from '@react-navigation/stack'
-import { collection, doc, getDoc, getDocs, query, where } from 'firebase/firestore'
-import { useAvatar, useChats, useContact, useStatus, useUserInfo } from 'hooks'
+import { useAvatar, useChats, useContact, useStatus } from 'hooks'
 import moment from 'moment'
-import { Button, Input, Menu, Modal, Pressable, useToast, IconButton } from 'native-base'
-import { FlatList, Image, StatusBar, Text, View } from 'react-native'
+import { Button, IconButton, Input, Menu, Modal, Pressable, useToast } from 'native-base'
 import { RootStackParamList } from 'pages/screens'
 import React, { useEffect, useState } from 'react'
+import { FlatList, Image, StatusBar, Text, View } from 'react-native'
 import ImageModal from 'react-native-image-modal'
-import { db, IChatItem, IChatList, IChatMessage, IContact, useFirebase } from 'utils'
+import { IChatItem, IChatList, IChatMessage, IContact, useFirebase } from 'utils'
+
 import { ChatInput } from './chat-input'
 
 type Props = NativeStackScreenProps<RootStackParamList, 'chatItem', 'Stack'>
 type TransactionScreenProp = StackNavigationProp<RootStackParamList, 'new_transaction'>
 
 const ChatItem = ({ route }: Props) => {
-
     const toast = useToast()
     const toastId = 'save-contact'
     const navigation = useNavigation<TransactionScreenProp>()
@@ -29,7 +29,7 @@ const ChatItem = ({ route }: Props) => {
     const { user } = useFirebase()
     const { messages } = useChats({
         id: route?.params?.chatId,
-        user: user,
+        user,
     })
 
     const [message, setMessage] = useState<IChatMessage[]>([])
@@ -37,7 +37,6 @@ const ChatItem = ({ route }: Props) => {
     const [chatList, setChatList] = useState<IChatList | null>(null)
     const [isOpen, setIsOpen] = useState(false)
     const [contactName, setContactName] = useState('')
-
 
     const { status } = useStatus({
         phoneNumber: route?.params?.phoneNumber,
@@ -48,22 +47,24 @@ const ChatItem = ({ route }: Props) => {
     })
     const { contact, saveContact } = useContact({
         contactId: receiver?.uid,
-        user: user
+        user,
     })
-
 
     useEffect(() => {
         if (route?.params?.phoneNumber) {
-            const queryUser = query(collection(db, 'users'), where('phoneNumber', '==', `${route?.params?.phoneNumber}`))
-            getDocs(queryUser).then(doc => {
-                if (doc.empty) {
-                    setReceiver(null)
-                } else {
-                    doc.forEach((doc) => {
-                        setReceiver(doc.data() as IChatItem)
-                    })
-                }
-            })
+            firestore()
+                .collection('users')
+                .where('phoneNumber', '==', `${route?.params?.phoneNumber}`)
+                .get()
+                .then(doc => {
+                    if (doc.empty) {
+                        setReceiver(null)
+                    } else {
+                        doc.forEach(doc => {
+                            setReceiver(doc.data() as IChatItem)
+                        })
+                    }
+                })
         }
     }, [route?.params?.phoneNumber])
 
@@ -75,16 +76,25 @@ const ChatItem = ({ route }: Props) => {
 
     useEffect(() => {
         if (route?.params?.chatId) {
-            const dbRef = doc(db, 'chats', route?.params?.chatId)
-            getDoc(dbRef).then(doc => {
-                if (doc.exists()) {
-                    const data = doc.data()
-                    setChatList(data as IChatList)
-                }
-            })
+            // const dbRef = doc(db, 'chats', route?.params?.chatId)
+            // getDoc(dbRef).then(doc => {
+            //     if (doc.exists()) {
+            //         const data = doc.data()
+            //         setChatList(data as IChatList)
+            //     }
+            // })
+            firestore()
+                .collection('chats')
+                .doc(route?.params?.chatId)
+                .get()
+                .then(doc => {
+                    if (doc.exists) {
+                        const data = doc.data()
+                        setChatList(data as IChatList)
+                    }
+                })
         }
     }, [route?.params?.chatId])
-
 
     const handleSaveContact = () => {
         if (receiver && contactName.length > 0) {
@@ -92,18 +102,20 @@ const ChatItem = ({ route }: Props) => {
                 uid: receiver?.uid,
                 phoneNumber: receiver?.phoneNumber,
                 displayName: contactName,
-                email: receiver?.email
-            }).then(() => {
-                setIsOpen(false)
-            }).catch(err => {
-                if (!toast.isActive(toastId)) {
-                    toast.show({
-                        id: toastId,
-                        title: 'Error save contact ' + err?.message,
-                    })
-                }
-                setIsOpen(false)
+                email: receiver?.email,
             })
+                .then(() => {
+                    setIsOpen(false)
+                })
+                .catch(err => {
+                    if (!toast.isActive(toastId)) {
+                        toast.show({
+                            id: toastId,
+                            title: 'Error save contact ' + err?.message,
+                        })
+                    }
+                    setIsOpen(false)
+                })
         }
     }
 
@@ -136,146 +148,235 @@ const ChatItem = ({ route }: Props) => {
     }
 
     const handleUnsopported = () => {
-        alert('Untuk saat ini fitur ini hanya tersedia untuk desktop web. silahkan akses melalui browser desktop anda untuk menggunakan fitur ini')
+        alert(
+            'Untuk saat ini fitur ini hanya tersedia untuk desktop web. silahkan akses melalui browser desktop anda untuk menggunakan fitur ini'
+        )
     }
 
-
     return (
-        <View
-            style={{
-                height: '100%',
-                flexDirection: 'column'
-            }}>
-            <StatusBar animated={true} backgroundColor={'#5b21b6'} />
+        <>
+            <StatusBar
+                animated={true}
+                backgroundColor={'#5b21b6'}
+            />
             <View
                 style={{
-                    zIndex: 1,
-                    height: 60,
-                    display: 'flex',
-                    backgroundColor: '#5b21b6',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    flexDirection: 'row',
-                    paddingHorizontal:10
+                    height: '100%',
+                    flexDirection: 'column',
                 }}>
                 <View
                     style={{
-                        flexDirection: 'row',
+                        zIndex: 1,
+                        height: 60,
+                        display: 'flex',
+                        backgroundColor: '#5b21b6',
                         alignItems: 'center',
-                        right: 10
+                        justifyContent: 'space-between',
+                        flexDirection: 'row',
+                        paddingHorizontal: 10,
                     }}>
-
-                    <IconButton
-                        onPress={handleBack}
-                        borderRadius='full'
-                        _icon={{
-                            as: Ionicons,
-                            name: 'arrow-back-outline',
-                            color: 'white',
-                            size: '6',
-                        }}
-                    />
-                    <Image
-                        style={{
-                            height: 40,
-                            width: 40,
-                            borderRadius: 50,
-                            marginRight: 10
-
-                        }}
-                        source={{ uri: avatar ? avatar : `https://ui-avatars.com/api/?name=Rerkberin`  }}
-                    />
                     <View
                         style={{
-                            flexDirection: 'column'
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            right: 10,
                         }}>
-                        <Text
-                            style={{
+                        <IconButton
+                            onPress={handleBack}
+                            borderRadius='full'
+                            _icon={{
+                                as: Ionicons,
+                                name: 'arrow-back-outline',
                                 color: 'white',
-                                fontWeight: 'bold',
-                                fontSize: 15
+                                size: '6',
+                            }}
+                        />
+                        <Image
+                            style={{
+                                height: 40,
+                                width: 40,
+                                borderRadius: 50,
+                                marginRight: 10,
+                            }}
+                            source={{ uri: avatar ? avatar : `https://ui-avatars.com/api/?name=Rerkberin` }}
+                        />
+                        <View
+                            style={{
+                                flexDirection: 'column',
                             }}>
-                            {getDisplayName()}
-                        </Text>
-                        <Text style={{
-                            color: 'white'
-                        }} >
-                            {status && status === 'online' ? 'online' : status !== '' ? moment(status).fromNow() : ''}
-                        </Text>
+                            <Text
+                                style={{
+                                    color: 'white',
+                                    fontWeight: 'bold',
+                                    fontSize: 15,
+                                }}>
+                                {getDisplayName()}
+                            </Text>
+                            <Text
+                                style={{
+                                    color: 'white',
+                                }}>
+                                {status && status === 'online'
+                                    ? 'online'
+                                    : status !== ''
+                                    ? moment(status).fromNow()
+                                    : ''}
+                            </Text>
+                        </View>
                     </View>
-                </View>
 
-                <View
-                    style={{
-                        justifyContent: 'center',
-                        flexDirection: 'row',
-                        alignItems: 'center'
-                    }}>
-                    <IconButton
-                        onPress={handleUnsopported}
-                        borderRadius={'full'}
-                        _icon={{
-                            as: Ionicons,
-                            name: 'videocam',
-                            color: 'white',
-                            size: '6',
-                        }}
-                    />
-                    <IconButton
-                        onPress={handleUnsopported}
-                        borderRadius='full'
-                        _icon={{
-                            as: MaterialIcons,
-                            name: 'phone',
-                            color: 'white',
-                            size: '6',
-                        }}
-                    />
-                    <Menu
-                        backgroundColor='white'
-                        shadow={2}
-                        w='190'
-                        trigger={triggerProps => {
-                            return (
-                                <Pressable accessibilityLabel='More options menu'>
-                                    <IconButton
-                                        {...triggerProps}
-                                        borderRadius='full'
-                                        _icon={{
-                                            as: Ionicons,
-                                            name: 'ellipsis-vertical',
-                                            color: 'white',
-                                            size: '5',
-                                        }}
-                                    />
-                                </Pressable>
-                            )
+                    <View
+                        style={{
+                            justifyContent: 'center',
+                            flexDirection: 'row',
+                            alignItems: 'center',
                         }}>
-                        {
-                            !contact ? (
-                                <Menu.Item
-                                    onPress={handleOpenModal}>
+                        <IconButton
+                            onPress={handleUnsopported}
+                            borderRadius={'full'}
+                            _icon={{
+                                as: Ionicons,
+                                name: 'videocam',
+                                color: 'white',
+                                size: '6',
+                            }}
+                        />
+                        <IconButton
+                            onPress={handleUnsopported}
+                            borderRadius='full'
+                            _icon={{
+                                as: MaterialIcons,
+                                name: 'phone',
+                                color: 'white',
+                                size: '6',
+                            }}
+                        />
+                        <Menu
+                            backgroundColor='white'
+                            shadow={2}
+                            w='190'
+                            trigger={triggerProps => {
+                                return (
+                                    <Pressable accessibilityLabel='More options menu'>
+                                        <IconButton
+                                            {...triggerProps}
+                                            borderRadius='full'
+                                            _icon={{
+                                                as: Ionicons,
+                                                name: 'ellipsis-vertical',
+                                                color: 'white',
+                                                size: '5',
+                                            }}
+                                        />
+                                    </Pressable>
+                                )
+                            }}>
+                            {!contact ? (
+                                <Menu.Item onPress={handleOpenModal}>
                                     <Text>Tambahkan Ke Kotak</Text>
                                 </Menu.Item>
-                            ) : null
-                        }
-                        <Menu.Item
-                            onPress={() => newTransaction(contact!!)}>
-                            <Text>
-                                Buat Transaksi
-                            </Text>
-                        </Menu.Item>
-                        <Menu.Item
-                            disabled={true}>
-                            <Text>Blokir</Text>
-                        </Menu.Item>
-                        <Menu.Item
-                            disabled={true}>
-                            <Text>Laporakan</Text>
-                        </Menu.Item>
-                    </Menu>
+                            ) : null}
+                            <Menu.Item onPress={() => newTransaction(contact!)}>
+                                <Text>Buat Transaksi</Text>
+                            </Menu.Item>
+                            <Menu.Item disabled={true}>
+                                <Text>Blokir</Text>
+                            </Menu.Item>
+                            <Menu.Item disabled={true}>
+                                <Text>Laporakan</Text>
+                            </Menu.Item>
+                        </Menu>
+                    </View>
                 </View>
+                <FlatList
+                    style={{
+                        display: 'flex',
+                        flex: 1,
+                    }}
+                    inverted={true}
+                    data={message}
+                    renderItem={item => {
+                        const value = []
+                        if (item.item.type === 'image') {
+                            value.push(item.item.message.text)
+                        }
+                        return (
+                            <View
+                                style={{
+                                    margin: 1,
+                                    flexDirection: 'column',
+                                }}
+                                key={item.index}>
+                                <View
+                                    style={{
+                                        justifyContent: 'space-between',
+                                        maxWidth: '70%',
+                                        minHeight: 55,
+                                        minWidth: '35%',
+                                        // backgroundColor:'#4FA095',
+                                        backgroundColor:
+                                            item?.item?.sender?.phoneNumber === user?.phoneNumber
+                                                ? '#6ECCAF'
+                                                : '#2192FF',
+                                        paddingHorizontal: 10,
+                                        paddingVertical: 5,
+                                        borderTopRightRadius:
+                                            item?.item?.sender?.phoneNumber === user?.phoneNumber ? 0 : 20,
+                                        borderBottomEndRadius: 20,
+                                        borderBottomLeftRadius: 20,
+                                        borderTopLeftRadius:
+                                            item?.item?.sender?.phoneNumber === user?.phoneNumber ? 20 : 0,
+                                        marginVertical: 2,
+                                        marginHorizontal: 5,
+                                        alignSelf:
+                                            item?.item?.sender?.phoneNumber === user?.phoneNumber
+                                                ? 'flex-end'
+                                                : 'flex-start',
+                                    }}>
+                                    {item.item.message?.text?.length > 200 && item.item.type === 'text' ? (
+                                        <ReadMore text={item.item.message.text} />
+                                    ) : (
+                                        <>
+                                            {item.item.type === 'text' ? (
+                                                <Text
+                                                    style={{
+                                                        color: 'white',
+                                                    }}>
+                                                    {item.item.message?.text}
+                                                </Text>
+                                            ) : (
+                                                <ImageModal
+                                                    resizeMode='contain'
+                                                    imageBackgroundColor='#000000'
+                                                    style={{
+                                                        width: 150,
+                                                        height: 150,
+                                                    }}
+                                                    source={{
+                                                        uri: item.item.message.text,
+                                                    }}
+                                                />
+                                            )}
+                                        </>
+                                    )}
+                                    <Text
+                                        style={{
+                                            color: '#FFE9A0',
+                                        }}>
+                                        {moment(item?.item?.message?.createdAt)?.fromNow()}
+                                    </Text>
+                                </View>
+                            </View>
+                        )
+                    }}
+                />
+                <ChatInput
+                    user={receiver}
+                    id={route?.params?.chatId}
+                    onSend={appendMessage}
+                />
             </View>
+
             <Modal
                 isOpen={isOpen}
                 onClose={handleOpenModal}
@@ -291,99 +392,23 @@ const ChatItem = ({ route }: Props) => {
                             variant={'rounded'}
                             value={contactName}
                             onChangeText={setContactName}
-                            placeholder={'Nama Kontak'} />
+                            placeholder={'Nama Kontak'}
+                        />
                     </Modal.Body>
                     <Modal.Footer>
                         <Button.Group space={2}>
-                            <Button variant="ghost" colorScheme="blueGray" onPress={handleOpenModal}>
+                            <Button
+                                variant='ghost'
+                                colorScheme='blueGray'
+                                onPress={handleOpenModal}>
                                 Cancel
                             </Button>
-                            <Button onPress={handleSaveContact}>
-                                Save
-                            </Button>
+                            <Button onPress={handleSaveContact}>Save</Button>
                         </Button.Group>
                     </Modal.Footer>
                 </Modal.Content>
             </Modal>
-            <FlatList
-                inverted={true}
-                data={message}
-                renderItem={item => {
-                    const value = []
-                    if (item.item.type === 'image') {
-                        value.push(
-                            item.item.message.text
-                        )
-                    }
-                    return (
-                        <View
-                            style={{
-                                margin: 1,
-                                flexDirection: 'column'
-                            }}
-                            key={item.index}>
-                            <View
-                                style={{
-                                    justifyContent:'space-between',
-                                    maxWidth: '70%',
-                                    minHeight:55,
-                                    minWidth:'35%',
-                                    // backgroundColor:'#4FA095',
-                                    backgroundColor: item?.item?.sender?.phoneNumber === user?.phoneNumber ? '#6ECCAF' : '#2192FF',
-                                    paddingHorizontal: 10,
-                                    paddingVertical: 5,
-                                    borderTopRightRadius: item?.item?.sender?.phoneNumber === user?.phoneNumber ? 0 : 20,
-                                    borderBottomEndRadius: 20,
-                                    borderBottomLeftRadius: 20,
-                                    borderTopLeftRadius: item?.item?.sender?.phoneNumber === user?.phoneNumber ? 20 : 0,
-                                    marginVertical: 2,
-                                    marginHorizontal: 5,
-                                    alignSelf: item?.item?.sender?.phoneNumber === user?.phoneNumber ? 'flex-end' : 'flex-start'
-                                }}>
-                                {item.item.message?.text?.length > 200 && item.item.type === "text" ? (
-                                    <ReadMore text={item.item.message.text} />
-                                ) : (
-                                    <>
-                                        {
-                                            item.item.type === "text" ? (
-                                                <Text style={{
-                                                    color: 'white'
-                                                }}>
-                                                    {item.item.message?.text}
-                                                </Text>
-                                            ) : (
-                                                <ImageModal
-                                                    resizeMode="contain"
-                                                    imageBackgroundColor="#000000"
-                                                    style={{
-                                                        width: 150,
-                                                        height: 150,
-                                                    }}
-                                                    source={{
-                                                        uri: item.item.message.text,
-                                                    }}
-                                                />
-                                            )
-                                        }
-                                    </>
-                                )}
-                                <Text style={{
-                                    color: '#FFE9A0'
-                                }}>{moment(item?.item?.message?.createdAt)?.fromNow()}</Text>
-                            </View>
-                        </View>
-                    )
-                }}>
-
-            </FlatList>
-            {
-                <ChatInput
-                    user={receiver}
-                    id={route?.params?.chatId}
-                    onSend={appendMessage}
-                />
-            }
-        </View>
+        </>
     )
 }
 
@@ -397,13 +422,14 @@ const ReadMore = (props: { text: string }) => {
     }
 
     return (
-        <Text style={{
-            color: 'white'
-        }}>
+        <Text
+            style={{
+                color: 'white',
+            }}>
             {props.text?.slice(0, maxMessageLength)}...
             <Text
                 style={{
-                    fontWeight: 'bold'
+                    fontWeight: 'bold',
                 }}
                 onPress={() => {
                     handleReadMore(props.text?.length)
@@ -415,4 +441,3 @@ const ReadMore = (props: { text: string }) => {
 }
 
 export { ChatItem }
-

@@ -1,17 +1,17 @@
+import BottomSheet from '@gorhom/bottom-sheet'
 import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { ButtonPrimary } from 'components'
-import { FirebaseRecaptchaVerifierModal } from 'expo-firebase-recaptcha'
-import React, { useMemo, useRef, useState } from 'react'
-import { Text, TextInput, View, Image } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import { app, useFirebase } from 'utils'
+import { Radio, Stack, useToast } from 'native-base'
 import phone from 'phone'
+import React, { useMemo, useRef, useState } from 'react'
+import { ActivityIndicator, Image, Text, TextInput, View } from 'react-native'
+import { TouchableOpacity } from 'react-native-gesture-handler'
+import { Dialog } from 'react-native-paper'
+import { SafeAreaView } from 'react-native-safe-area-context'
+import { useFirebase } from 'utils'
 
 import { RootStackParamList } from '../screens'
-import { Radio, Stack, Toast, useToast } from 'native-base'
-import BottomSheet from '@gorhom/bottom-sheet'
-import { TouchableOpacity } from 'react-native-gesture-handler'
 
 type otpScreenProp = StackNavigationProp<RootStackParamList, 'otp'>
 
@@ -20,10 +20,9 @@ const SignIn = () => {
 
     const toast = useToast()
 
-
     const bottomSheetRef = useRef<BottomSheet>(null)
     const [phoneNumber, setPhoneNumber] = useState('')
-    const recaptchaVerifier = useRef<any>(null)
+    const [loading, setLoading] = useState(false)
     const snapPoints = useMemo(() => ['50%'], [])
     const [value, setValue] = useState('')
 
@@ -35,31 +34,46 @@ const SignIn = () => {
 
     const handleClickSignin = (provider: string) => {
         setValue(provider)
+        setLoading(true)
         const localPhoneNumber = phone(phoneNumber, {
             country: 'ID',
-
         })
         if (localPhoneNumber.phoneNumber) {
             if (provider === 'sms') {
-                signInWithPhone(localPhoneNumber.phoneNumber, recaptchaVerifier.current)
+                signInWithPhone(localPhoneNumber.phoneNumber)
                     .then(_n => {
+                        setLoading(false)
                         navigation.navigate('otp', {
                             provider: 'phone',
                         })
                         bottomSheetRef.current?.collapse()
                     })
-                    .catch(_error => { })
+                    .catch(_error => {
+                        setLoading(false)
+                        toast.show({
+                            id: 'toast-id',
+                            title: 'ada kesalahan coba lagi',
+                        })
+                    })
             } else if (provider === 'wa') {
                 signInWithWhatsApp(localPhoneNumber.phoneNumber)
                     .then(_n => {
+                        setLoading(false)
                         navigation.navigate('otp', {
                             provider: 'whatsapp',
                         })
                         bottomSheetRef.current?.collapse()
                     })
-                    .catch(_error => { })
+                    .catch(_error => {
+                        setLoading(false)
+                        toast.show({
+                            id: 'toast-id',
+                            title: 'ada kesalahan coba lagi',
+                        })
+                    })
             } else {
                 if (!toast.isActive('toast-id')) {
+                    setLoading(false)
                     toast.show({
                         id: 'toast-id',
                         title: 'Provider tidak valid',
@@ -78,24 +92,26 @@ const SignIn = () => {
                 })
             }
         }
-
     }
 
     return (
         <SafeAreaView>
-            <View style={{
-                alignItems: 'center',
-                width: '100%',
-                height: '100%',
-            }}>
-                <Image
-                    source={require('../../assets/adaptive-icon.png')} />
+            <View
+                style={{
+                    alignItems: 'center',
+                    width: '100%',
+                    height: '100%',
+                }}>
+                <Image source={require('../../assets/adaptive-icon.png')} />
 
-                <Text style={{
-                    fontSize: 15,
-                    marginBottom: 2,
-                    color: '#3b5998'
-                }}>Masukan Nomor Anda</Text>
+                <Text
+                    style={{
+                        fontSize: 15,
+                        marginBottom: 2,
+                        color: '#3b5998',
+                    }}>
+                    Masukan Nomor Anda
+                </Text>
                 <TextInput
                     style={{
                         width: '70%',
@@ -105,15 +121,10 @@ const SignIn = () => {
                         padding: 15,
                         borderColor: '#3b5998',
                     }}
-
                     value={phoneNumber}
                     onChangeText={(text: React.SetStateAction<string>) => setPhoneNumber(text)}
                     keyboardType='numeric'
                     placeholder='62 81264 XXX'
-                />
-                <FirebaseRecaptchaVerifierModal
-                    ref={recaptchaVerifier}
-                    firebaseConfig={app?.options}
                 />
 
                 <ButtonPrimary
@@ -121,7 +132,8 @@ const SignIn = () => {
                     py={'30%'}
                     disabled={!phoneNumber}
                     onPress={handleChose}
-                    title={'Login'} />
+                    title={'Login'}
+                />
             </View>
             <BottomSheet
                 index={-1}
@@ -129,8 +141,10 @@ const SignIn = () => {
                 ref={bottomSheetRef}
                 enablePanDownToClose={true}>
                 <Radio.Group
+                    aria-label={'provider'}
                     value={value}
-                    name=''>
+                    accessibilityLabel={'select an option'}
+                    name='value'>
                     <Stack
                         padding={5}
                         space={4}
@@ -139,8 +153,7 @@ const SignIn = () => {
                             justifyContent={'space-between'}
                             alignItems={'center'}
                             direction={'row'}>
-                            <TouchableOpacity
-                                onPress={() => handleClickSignin('wa')}>
+                            <TouchableOpacity onPress={() => handleClickSignin('wa')}>
                                 <Stack
                                     space={2}
                                     direction={'column'}>
@@ -160,14 +173,17 @@ const SignIn = () => {
                                     </Text>
                                 </Stack>
                             </TouchableOpacity>
-                            <Radio value='wa' aria-label={''} />
+                            <Radio
+                                value='wa'
+                                aria-label={'Whats app'}>
+                                {''}
+                            </Radio>
                         </Stack>
                         <Stack
                             justifyContent={'space-between'}
                             alignItems={'center'}
                             direction={'row'}>
-                            <TouchableOpacity
-                                onPress={() => handleClickSignin('sms')}>
+                            <TouchableOpacity onPress={() => handleClickSignin('sms')}>
                                 <Stack
                                     space={2}
                                     direction={'column'}>
@@ -187,14 +203,27 @@ const SignIn = () => {
                                     </Text>
                                 </Stack>
                             </TouchableOpacity>
-                            <Radio value='sms' />
+                            <Radio
+                                value='sms'
+                                aria-label={'SMS'}>
+                                {''}
+                            </Radio>
                         </Stack>
                     </Stack>
                 </Radio.Group>
             </BottomSheet>
+            <Dialog
+                visible={loading}
+                dismissable={false}>
+                <Dialog.Content>
+                    <ActivityIndicator
+                        size='large'
+                        color='#3b5998'
+                    />
+                </Dialog.Content>
+            </Dialog>
         </SafeAreaView>
     )
 }
 
 export { SignIn }
-

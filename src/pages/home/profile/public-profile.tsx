@@ -1,9 +1,9 @@
 import { Ionicons } from '@expo/vector-icons'
+import firestore from '@react-native-firebase/firestore'
 import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { InputPrimary } from 'components'
 import * as ImagePicker from 'expo-image-picker'
-import { collection, onSnapshot, query, updateDoc, where } from 'firebase/firestore'
 import { useAvatar, useUserInfo } from 'hooks'
 import { IconButton, useToast } from 'native-base'
 import { RootStackParamList } from 'pages/screens'
@@ -11,11 +11,11 @@ import phone from 'phone'
 import React, { useEffect, useState } from 'react'
 import { Image, StatusBar, Text, TouchableOpacity, View } from 'react-native'
 import { Button } from 'react-native-paper'
-import { db, useFirebase } from 'utils'
+import { useFirebase } from 'utils'
 
 type Props = StackNavigationProp<RootStackParamList>
 
-const ProfilePublik = () => {
+const PublicProfile = () => {
     const navigation = useNavigation<Props>()
 
     const handleBack = () => {
@@ -24,17 +24,15 @@ const ProfilePublik = () => {
 
     const toast = useToast()
 
-
     const { user, reloadUser } = useFirebase()
 
     const { userInfo } = useUserInfo({
-        uid: user?.uid
+        uid: user?.uid,
     })
 
     const { uploadAvatar } = useAvatar({
         uid: user?.uid,
     })
-
 
     const [email, setEmail] = useState<string | null | undefined>('')
     const [displayName, setDisplayName] = useState<string | null | undefined>('')
@@ -50,8 +48,8 @@ const ProfilePublik = () => {
 
     const handleSave = () => {
         setLoading(true)
-        const userRef = query(collection(db, 'users'), where('uid', '==', `${user?.uid}`))
-        onSnapshot(userRef, (querySnapshot) => {
+        /*const userRef = query(collection(db, 'users'), where('uid', '==', `${user?.uid}`))
+        onSnapshot(userRef, querySnapshot => {
             if (querySnapshot.empty) {
                 toast.show({
                     title: 'No matching User',
@@ -59,7 +57,7 @@ const ProfilePublik = () => {
                 setLoading(false)
                 return
             } else {
-                querySnapshot.forEach((doc) => {
+                querySnapshot.forEach(doc => {
                     updateDoc(doc.ref, {
                         displayName: displayName,
                         email: email,
@@ -74,7 +72,40 @@ const ProfilePublik = () => {
                     })
                 })
             }
-        })
+        })*/
+        if (user?.phoneNumber) {
+            firestore()
+                .collection('users')
+                .where('phoneNumber', '==', user?.phoneNumber)
+                .get()
+                .then(querySnapshot => {
+                    if (querySnapshot.empty) {
+                        toast.show({
+                            title: 'No matching User',
+                        })
+                        setLoading(false)
+                        return
+                    } else {
+                        querySnapshot.forEach(doc => {
+                            doc.ref
+                                .update({
+                                    displayName,
+                                    email,
+                                })
+                                .then(() => {
+                                    const ph = phone(phoneNumber, {
+                                        country: 'ID',
+                                    })
+                                    setLoading(false)
+                                    navigation.navigate('change_phone', {
+                                        new_phone: ph.phoneNumber || phoneNumber,
+                                    })
+                                })
+                        })
+                    }
+                })
+        } else {
+        }
     }
 
     const handleChangeAvatar = async () => {
@@ -102,18 +133,19 @@ const ProfilePublik = () => {
             uploadAvatar(file).then(() => {
                 reloadUser()
             })
-
         }
     }
-
 
     return (
         <View
             style={{
                 height: '100%',
-                flexDirection: 'column'
+                flexDirection: 'column',
             }}>
-            <StatusBar animated={true} backgroundColor={'#5b21b6'} />
+            <StatusBar
+                animated={true}
+                backgroundColor={'#5b21b6'}
+            />
             <View
                 style={{
                     zIndex: 1,
@@ -123,16 +155,14 @@ const ProfilePublik = () => {
                     alignItems: 'center',
                     justifyContent: 'space-between',
                     flexDirection: 'row',
-                    paddingHorizontal: 10
+                    paddingHorizontal: 10,
                 }}>
                 <View
                     style={{
                         flexDirection: 'row',
                         alignItems: 'center',
                         right: 10,
-
                     }}>
-
                     <IconButton
                         onPress={handleBack}
                         borderRadius='full'
@@ -146,37 +176,38 @@ const ProfilePublik = () => {
                     <Text
                         style={{
                             fontSize: 18,
-                            color: 'white'
+                            color: 'white',
                         }}>
                         Publik profile
                     </Text>
                 </View>
             </View>
-            <View style={{
-                marginTop: 20,
-                display: 'flex',
-                alignItems: 'center'
-            }}>
-                <TouchableOpacity
-                    onPress={handleChangeAvatar}>
+            <View
+                style={{
+                    marginTop: 20,
+                    display: 'flex',
+                    alignItems: 'center',
+                }}>
+                <TouchableOpacity onPress={handleChangeAvatar}>
                     <Image
                         style={{
                             width: 150,
                             height: 150,
                             borderRadius: 100,
-                            marginRight: 10
-                        }} source={{ uri: userInfo?.photoURL ? userInfo?.photoURL : undefined }} />
-                    <View style={{
-                        position: 'absolute',
-                        left: 110,
-                        top: 100,
+                            marginRight: 10,
+                        }}
+                        source={{ uri: userInfo?.photoURL ? userInfo?.photoURL : undefined }}
+                    />
+                    <View
+                        style={{
+                            position: 'absolute',
+                            left: 110,
+                            top: 100,
 
-                        borderRadius: 50,
-                        backgroundColor: 'white'
-
-                    }}>
+                            borderRadius: 50,
+                            backgroundColor: 'white',
+                        }}>
                         <IconButton
-
                             // onPress={handleBack}
                             borderRadius='full'
                             _icon={{
@@ -187,26 +218,27 @@ const ProfilePublik = () => {
                             }}
                         />
                     </View>
-
                 </TouchableOpacity>
 
-
-                <View style={{
-                    display: 'flex',
-                    width: '100%',
-                    alignItems: 'center',
-                    alignContent: 'center',
-                }}>
+                <View
+                    style={{
+                        display: 'flex',
+                        width: '100%',
+                        alignItems: 'center',
+                        alignContent: 'center',
+                    }}>
                     <InputPrimary
                         title={'Nama'}
                         placeholder={'Masukan Nama anda'}
                         onChangeText={(text: any) => setDisplayName(text)}
-                        value={displayName} />
+                        value={displayName}
+                    />
                     <InputPrimary
                         title={'Email'}
                         value={email}
                         onChangeText={(text: any) => setEmail(text)}
-                        placeholder={'Masukan Email Anda'} />
+                        placeholder={'Masukan Email Anda'}
+                    />
                     <InputPrimary
                         keyboardType='numeric'
                         title={'No Telpon'}
@@ -214,7 +246,8 @@ const ProfilePublik = () => {
                         onChangeText={(text: any) => {
                             setPhoneNumber(text)
                         }}
-                        value={phoneNumber} />
+                        value={phoneNumber}
+                    />
                     <Button
                         disabled={loading}
                         loading={loading}
@@ -222,12 +255,10 @@ const ProfilePublik = () => {
                         onPress={handleSave}>
                         Simpan
                     </Button>
-
                 </View>
-
             </View>
         </View>
     )
 }
 
-export { ProfilePublik }
+export { PublicProfile }

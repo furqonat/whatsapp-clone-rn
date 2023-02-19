@@ -1,15 +1,15 @@
 import { Ionicons } from '@expo/vector-icons'
-import { useNavigation } from "@react-navigation/native"
-import { NativeStackScreenProps } from "@react-navigation/native-stack"
-import { StackNavigationProp } from "@react-navigation/stack"
-import { FirebaseRecaptchaVerifierModal } from "expo-firebase-recaptcha"
-import { IconButton } from "native-base"
-import { RootStackParamList } from "pages/screens"
-import { useRef, useState } from "react"
-import { StatusBar, StyleSheet, Text, View } from "react-native"
-import { CodeField, Cursor, useBlurOnFulfill, useClearByFocusCell } from "react-native-confirmation-code-field"
-import { Button } from "react-native-paper"
-import { app, useFirebase } from "utils"
+import { useNavigation } from '@react-navigation/native'
+import { NativeStackScreenProps } from '@react-navigation/native-stack'
+import { StackNavigationProp } from '@react-navigation/stack'
+import { FirebaseRecaptchaVerifierModal } from 'expo-firebase-recaptcha'
+import { IconButton } from 'native-base'
+import { RootStackParamList } from 'pages/screens'
+import { useRef, useState } from 'react'
+import { StatusBar, StyleSheet, Text, View } from 'react-native'
+import { CodeField, Cursor, useBlurOnFulfill, useClearByFocusCell } from 'react-native-confirmation-code-field'
+import { Button } from 'react-native-paper'
+import { useFirebase } from 'utils'
 
 type Props = NativeStackScreenProps<RootStackParamList, 'change_phone', 'profile'>
 
@@ -40,9 +40,7 @@ const styles = StyleSheet.create({
     },
 })
 
-
 const ChangePhone = ({ route }: Props) => {
-
     const navigation = useNavigation<StackNavigationProp<RootStackParamList, 'tabbar'>>()
     const recaptchaVerifier = useRef<any>(null)
     const [value, setValue] = useState('')
@@ -58,7 +56,7 @@ const ChangePhone = ({ route }: Props) => {
     const handlePress = () => {
         if (value.length === 6) {
             setLoading(true)
-            changePhoneNumber(route?.params?.new_phone, value, recaptchaVerifier.current).then(_n => {
+            changePhoneNumber(route?.params?.new_phone, value).then(_n => {
                 setLoading(false)
                 navigation.navigate('tabbar')
             })
@@ -67,7 +65,10 @@ const ChangePhone = ({ route }: Props) => {
 
     return (
         <View>
-            <StatusBar animated={true} backgroundColor={'#5b21b6'} />
+            <StatusBar
+                animated={true}
+                backgroundColor={'#5b21b6'}
+            />
             <View
                 style={{
                     zIndex: 1,
@@ -77,16 +78,14 @@ const ChangePhone = ({ route }: Props) => {
                     alignItems: 'center',
                     justifyContent: 'space-between',
                     flexDirection: 'row',
-                    paddingHorizontal: 10
+                    paddingHorizontal: 10,
                 }}>
                 <View
                     style={{
                         flexDirection: 'row',
                         alignItems: 'center',
                         right: 10,
-
                     }}>
-
                     <IconButton
                         onPress={() => navigation.goBack()}
                         borderRadius='full'
@@ -100,7 +99,7 @@ const ChangePhone = ({ route }: Props) => {
                     <Text
                         style={{
                             fontSize: 18,
-                            color: 'white'
+                            color: 'white',
                         }}>
                         Verifikasi Nomor Telepon
                     </Text>
@@ -114,18 +113,14 @@ const ChangePhone = ({ route }: Props) => {
                     justifyContent: 'center',
                     alignItems: 'center',
                     padding: '10%',
-
                 }}>
                 <Text
                     style={{
                         fontSize: 18,
-
                     }}>
                     Kami telah mengirimkan kode verifikasi ke nomor telepon baru anda {route?.params.new_phone}
                 </Text>
-                <Text>
-                    Masukkan kode verifikasi untuk melanjutkan
-                </Text>
+                <Text>Masukkan kode verifikasi untuk melanjutkan</Text>
                 <CodeField
                     ref={ref}
                     {...props}
@@ -144,10 +139,6 @@ const ChangePhone = ({ route }: Props) => {
                             {symbol || (isFocused ? <Cursor /> : null)}
                         </Text>
                     )}
-                />
-                <FirebaseRecaptchaVerifierModal
-                    ref={recaptchaVerifier}
-                    firebaseConfig={app?.options}
                 />
                 <Button
                     onPress={handlePress}

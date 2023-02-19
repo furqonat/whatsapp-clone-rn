@@ -1,19 +1,18 @@
 import { Ionicons } from '@expo/vector-icons'
-import { useNavigation } from "@react-navigation/native"
-import { NativeStackScreenProps } from "@react-navigation/native-stack"
+import firestore from '@react-native-firebase/firestore'
+import { useNavigation } from '@react-navigation/native'
+import { NativeStackScreenProps } from '@react-navigation/native-stack'
 import axios from 'axios'
 import * as WebBrowser from 'expo-web-browser'
-import { doc, setDoc } from 'firebase/firestore'
-import { Button, IconButton, Input, Modal, Radio, Select, Stack, Text, VStack } from "native-base"
-import { RootStackParamList } from "pages/screens"
-import React, { useState } from "react"
+import { Button, IconButton, Input, Modal, Radio, Select, Stack, Text, VStack } from 'native-base'
+import { RootStackParamList } from 'pages/screens'
+import React, { useState } from 'react'
 import { GestureResponderEvent } from 'react-native'
-import { TransactionObject, db, useFirebase } from "utils"
+import { IContact, TransactionObject, useFirebase } from 'utils'
 
 type Props = NativeStackScreenProps<RootStackParamList, 'new_transaction', 'Stack'>
 
 const NewTransaction = (props: Props) => {
-
     const { contact } = props.route.params
 
     const { user } = useFirebase()
@@ -54,15 +53,11 @@ const NewTransaction = (props: Props) => {
                             transactionFee: fees,
                             transactionType: type,
                             transactionStatus: status,
-                            receiverInfo: contact!!,
+                            receiverInfo: contact as IContact,
                         }
                         setTrans(transactions)
                         // props.onClick(transactions)
-                    } else {
-                        return
                     }
-                } else {
-                    return
                 }
             }
         } else {
@@ -89,55 +84,66 @@ const NewTransaction = (props: Props) => {
         setIsLoading(true)
         const id = transaction.receiverInfo.uid + user?.uid + new Date().getTime()
         const orderId = `order-${new Date().getTime()}`
-        const dbRef = doc(db, 'transactions', orderId)
-        axios.post(`${process.env.SERVER_URL}api/v1/transactions/new`, {
-            customer_details: {
-                first_name: transaction.receiverInfo.displayName,
-                phone: transaction.receiverInfo.phoneNumber,
-                email: transaction.receiverInfo.email
-            },
-            amount: transaction.transactionAmount + transaction.transactionFee,
-            order_id: orderId,
-        }, {
-            headers: {
-                "Accept": "application/json",
-                "Content-Type": "application/json",
-            }
-        }).then((response) => {
-            if (response.status === 200) {
-                setDoc(dbRef, {
-                    id: id,
-                    senderPhoneNumber: user?.phoneNumber,
-                    senderUid: user?.uid,
-                    senderEmail: user?.email ?? "",
-                    receiverPhoneNumber: transaction.receiverInfo.phoneNumber,
-                    receiverUid: transaction.receiverInfo.uid,
-                    receiverEmail: transaction.receiverInfo.email,
-                    ...transaction,
-                    createdAt: new Date().toISOString(),
-                    status: "pending",
-                    transactionToken: response.data.transactionToken,
-                }).then(() => {
-                    WebBrowser.openBrowserAsync(response.data.transactionToken.redirect_url).then(() => {
-                        navigation.goBack()
-                    })
-                    // openNewWindow(response.data.transactionToken.redirect_url)
-                    // setOpenDialog(false)
-                    // onDone && onDone(true)
-                    setAlertDialog(false)
-                    setIsLoading(false)
-                }).catch(() => {
-                    setIsLoading(false)
-                    // setOpenDialog(false)
-                    // onDone && onDone(false)
-                    alert('Gagal membuat transaksi, silahkan coba lagi')
-                })
-            }
-        }).catch((error) => {
-            alert('Gagal membuat transaksi, silahkan hubungi admin')
-            // setOpenDialog(false)
-            // onDone && onDone(false)
-        })
+        const dbRef = firestore().collection('transactions').doc(orderId)
+
+        axios
+            .post(
+                `${process.env.SERVER_URL}api/v1/transactions/new`,
+                {
+                    customer_details: {
+                        first_name: transaction.receiverInfo.displayName,
+                        phone: transaction.receiverInfo.phoneNumber,
+                        email: transaction.receiverInfo.email,
+                    },
+                    amount: transaction.transactionAmount + transaction.transactionFee,
+                    order_id: orderId,
+                },
+                {
+                    headers: {
+                        Accept: 'application/json',
+                        'Content-Type': 'application/json',
+                    },
+                }
+            )
+            .then(response => {
+                if (response.status === 200) {
+                    dbRef
+                        .set({
+                            id,
+                            senderPhoneNumber: user?.phoneNumber,
+                            senderUid: user?.uid,
+                            senderEmail: user?.email ?? '',
+                            receiverPhoneNumber: transaction.receiverInfo.phoneNumber,
+                            receiverUid: transaction.receiverInfo.uid,
+                            receiverEmail: transaction.receiverInfo.email,
+                            ...transaction,
+                            createdAt: new Date().toISOString(),
+                            status: 'pending',
+                            transactionToken: response.data.transactionToken,
+                        })
+                        .then(() => {
+                            WebBrowser.openBrowserAsync(response.data.transactionToken.redirect_url).then(() => {
+                                navigation.goBack()
+                            })
+                            // openNewWindow(response.data.transactionToken.redirect_url)
+                            // setOpenDialog(false)
+                            // onDone && onDone(true)
+                            setAlertDialog(false)
+                            setIsLoading(false)
+                        })
+                        .catch(() => {
+                            setIsLoading(false)
+                            // setOpenDialog(false)
+                            // onDone && onDone(false)
+                            alert('Gagal membuat transaksi, silahkan coba lagi')
+                        })
+                }
+            })
+            .catch(() => {
+                alert('Gagal membuat transaksi, silahkan hubungi admin')
+                // setOpenDialog(false)
+                // onDone && onDone(false)
+            })
     }
 
     const handleOpenModal = () => {
@@ -182,14 +188,14 @@ const NewTransaction = (props: Props) => {
                     </Text>
                 </Stack>
             </Stack>
-            <VStack
-                padding={4}>
+            <VStack padding={4}>
                 <Text variant={'sm'}>Nama transaksi</Text>
                 <Input
                     value={title}
                     onChangeText={handleChangeTitle}
                     size={'small'}
-                    placeholder={'Contoh: Pembelian Akun PUBG'} />
+                    placeholder={'Contoh: Pembelian Akun PUBG'}
+                />
                 <Text variant={'sm'}>Informasi penerima</Text>
                 <Stack
                     space={2}
@@ -198,11 +204,13 @@ const NewTransaction = (props: Props) => {
                     <Input
                         isDisabled={true}
                         size={'small'}
-                        value={`${contact?.displayName}`} />
+                        value={`${contact?.displayName}`}
+                    />
                     <Input
                         isDisabled={true}
                         size={'small'}
-                        value={`${contact?.phoneNumber}`} />
+                        value={`${contact?.phoneNumber}`}
+                    />
                 </Stack>
                 <Text variant={'sm'}>Tipe transaksi</Text>
                 <Stack
@@ -213,25 +221,29 @@ const NewTransaction = (props: Props) => {
                     <Select
                         width={'100%'}
                         selectedValue={type}
-                        onValueChange={(itemValue) => setType(itemValue)}
+                        onValueChange={itemValue => setType(itemValue)}
                         size={'small'}>
-                        <Select.Item value="REKBER" label="Rekber" />
-                        <Select.Item value="PULBER" label="Pulber" />
+                        <Select.Item
+                            value='REKBER'
+                            label='Rekber'
+                        />
+                        <Select.Item
+                            value='PULBER'
+                            label='Pulber'
+                        />
                     </Select>
                     <Radio.Group
-                        onChange={(nextValue) => setStatus(nextValue)}
+                        onChange={nextValue => setStatus(nextValue)}
                         defaultValue={status}
                         name={'Jenis Transaksi'}>
                         <Stack
                             space={2}
                             alignItems={'stretch'}
                             direction={'row'}>
-                            <Radio
-                                value={'legal'}>
+                            <Radio value={'legal'}>
                                 <Text variant={'sm'}>Legal</Text>
                             </Radio>
-                            <Radio
-                                value={'illegal'}>
+                            <Radio value={'illegal'}>
                                 <Text variant={'sm'}>Illegal</Text>
                             </Radio>
                         </Stack>
@@ -253,7 +265,8 @@ const NewTransaction = (props: Props) => {
                         value={String(fee)}
                         isDisabled={true}
                         placeholder={'0'}
-                        size={'small'} />
+                        size={'small'}
+                    />
                 </Stack>
 
                 <Button
@@ -295,11 +308,8 @@ const NewTransaction = (props: Props) => {
                     </Modal.Content>
                 </Modal>
             </VStack>
-
         </Stack>
     )
 }
-
-
 
 export { NewTransaction }

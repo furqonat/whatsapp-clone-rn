@@ -1,6 +1,16 @@
+import * as Notifications from 'expo-notifications'
 import { extendTheme, NativeBaseProvider } from 'native-base'
 import { FirebaseProvider } from 'utils'
+
 import { Main } from './src'
+
+Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+        shouldShowAlert: true,
+        shouldPlaySound: true,
+        shouldSetBadge: false,
+    }),
+})
 
 const newColorTheme = {
     primary: {
@@ -14,7 +24,7 @@ const newColorTheme = {
         dark: '#b28704',
         light: '#ffcd38',
         contrastText: '#000',
-    }
+    },
 }
 const theme = extendTheme({ colors: newColorTheme })
 

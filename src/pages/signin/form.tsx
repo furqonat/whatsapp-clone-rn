@@ -1,17 +1,16 @@
-import { collection, doc, onSnapshot, query, updateDoc, where } from '@firebase/firestore'
+import firestore from '@react-native-firebase/firestore'
 import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import * as ImagePicker from 'expo-image-picker'
 import { useAvatar } from 'hooks'
-import { Center, Input, Stack, VStack, useToast } from 'native-base'
-import { Button } from 'react-native-paper'
+import { Center, Input, Stack, useToast, VStack } from 'native-base'
 import React, { useEffect, useState } from 'react'
-import { IconButton } from 'react-native-paper'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import { USER_KEY, db, useFirebase } from 'utils'
-import { RootStackParamList } from '../screens'
 import { Image } from 'react-native'
-import { setValue } from 'lib'
+import { Button, IconButton } from 'react-native-paper'
+import { SafeAreaView } from 'react-native-safe-area-context'
+import { useFirebase, USER_KEY } from 'utils'
+
+import { RootStackParamList } from '../screens'
 
 type tabScreenProp = StackNavigationProp<RootStackParamList, 'tabbar'>
 
@@ -19,7 +18,7 @@ function Form() {
     const navigation = useNavigation<tabScreenProp>()
     const toast = useToast()
 
-    const { user } = useFirebase()
+    const { user, setValue } = useFirebase()
     const [displayName, setDisplayName] = useState(user?.displayName || '')
     const { uploadAvatar, avatar } = useAvatar({
         uid: user?.uid,
@@ -27,37 +26,76 @@ function Form() {
     const [photo, setPhoto] = useState('')
     const [loading, setLoading] = useState(false)
 
-
     const handlePress = () => {
         if (displayName?.length > 0) {
             setLoading(true)
-            const queryRef = query(collection(db, 'users'), where('uid', '==', `${user?.uid}`))
-            onSnapshot(queryRef, (querySnapshot) => {
-                if (querySnapshot.empty) {
-                    toast.show({
-                        title: 'No matching User',
-                    })
-                    setLoading(false)
-                    return
-                } else {
-                    querySnapshot.forEach((doc) => {
-                        updateDoc(doc.ref, {
-                            displayName: displayName,
-                        }).then(() => {
-                            setLoading(false)
-                            setValue(USER_KEY, JSON.stringify({
-                                ...user,
-                            }))
-                            navigation.navigate('tabbar')
-                        }).catch(error => {
-                            setLoading(false)
-                            toast.show({
-                                title: error.message,
-                            })
+            /*  const queryRef = query(collection(db, 'users'), where('uid', '==', `${user?.uid}`))
+              onSnapshot(queryRef, querySnapshot => {
+                  if (querySnapshot.empty) {
+                      toast.show({
+                          title: 'No matching User',
+                      })
+                      setLoading(false)
+                  } else {
+                      querySnapshot.forEach(doc => {
+                          updateDoc(doc.ref, {
+                              displayName,
+                          })
+                              .then(() => {
+                                  setLoading(false)
+                                  setValue(
+                                      USER_KEY,
+                                      JSON.stringify({
+                                          ...user,
+                                      })
+                                  )
+                                  navigation.navigate('tabbar')
+                              })
+                              .catch(error => {
+                                  setLoading(false)
+                                  toast.show({
+                                      title: error.message,
+                                  })
+                              })
+                      })
+                  }
+              })*/
+            firestore()
+                .collection('users')
+                .where('uid', '==', `${user?.uid}`)
+                .get()
+                .then(querySnapshot => {
+                    if (querySnapshot.empty) {
+                        toast.show({
+                            title: 'No matching User',
                         })
-                    })
-                }
-            })
+                        setLoading(false)
+                    } else {
+                        querySnapshot.forEach(doc => {
+                            doc.ref
+                                .update({
+                                    displayName,
+                                })
+                                .then(() => {
+                                    setLoading(false)
+                                    setValue(
+                                        USER_KEY,
+                                        JSON.stringify({
+                                            ...user,
+                                        })
+                                    ).then(() => {
+                                        navigation.navigate('tabbar')
+                                    })
+                                })
+                                .catch(error => {
+                                    setLoading(false)
+                                    toast.show({
+                                        title: error.message,
+                                    })
+                                })
+                        })
+                    }
+                })
         }
     }
 
@@ -70,7 +108,6 @@ function Form() {
             setPhoto(avatar)
         }
     }, [avatar])
-
 
     const handleNewAvatar = async () => {
         const result = await ImagePicker.launchImageLibraryAsync({
@@ -87,7 +124,6 @@ function Form() {
                     id: toastId,
                     title: 'Get images canceled',
                 })
-                return
             }
         } else {
             setPhoto(result.uri)
@@ -95,7 +131,7 @@ function Form() {
             const file = await fetch(result.uri)
                 .then(res => res.blob())
                 .then(blob => new File([blob], `${Date.now()}.png`, { type: 'image/png' }))
-            uploadAvatar(file)
+            uploadAvatar(file).then(() => {})
         }
     }
 
@@ -116,7 +152,7 @@ function Form() {
                             height: 100,
                             borderRadius: 50,
                         }}
-                        source={{ uri: photo }}
+                        source={{ uri: photo ? photo : undefined }}
                     />
                     <IconButton
                         style={{

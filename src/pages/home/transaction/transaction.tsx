@@ -1,39 +1,37 @@
 import { Ionicons } from '@expo/vector-icons'
-import BottomSheet, { BottomSheetFlatList } from "@gorhom/bottom-sheet"
-import { useNavigation } from "@react-navigation/native"
-import { StackNavigationProp } from "@react-navigation/stack"
+import BottomSheet, { BottomSheetFlatList } from '@gorhom/bottom-sheet'
+import firestore from '@react-native-firebase/firestore'
+import { useNavigation } from '@react-navigation/native'
+import { StackNavigationProp } from '@react-navigation/stack'
 import { useContacts, useTransactions } from 'hooks'
-import { IconButton, Menu, Pressable, Stack, StatusBar, Text, VStack } from "native-base"
-import { RootStackParamList } from "pages/screens"
-import { useMemo, useRef, useState } from "react"
-import { IContact, ITransactions, db, useFirebase } from "utils"
+import { IconButton, Menu, Pressable, Stack, StatusBar, Text, VStack } from 'native-base'
+import { RootStackParamList } from 'pages/screens'
+import { useMemo, useRef, useState } from 'react'
+import { IContact, ITransactions, useFirebase } from 'utils'
+
 import { ContactList } from '../chats/contact-list'
 import { TransactionItem } from './transaction-item'
 import { TransactionList } from './transaction-list'
-import { collection, doc, getDoc, getDocs, query, where } from 'firebase/firestore'
 
 type signInScreenProp = StackNavigationProp<RootStackParamList, 'signin'>
 
 const Transaction = () => {
-
     const navigation = useNavigation<signInScreenProp>()
 
     const { logout, user } = useFirebase()
     const { contacts } = useContacts({
-        user: user
+        user,
     })
 
     const { transactions } = useTransactions({
-        userId: user?.uid
+        userId: user?.uid,
     })
 
     const bsRef = useRef<BottomSheet>(null)
     const bsRefItem = useRef<BottomSheet>(null)
     const snapPoints = useMemo(() => ['25%', '50%', '75%'], [])
 
-
     const [trans, setTrans] = useState<ITransactions | null>(null)
-
 
     const handleClose = () => {
         logout().then(_ => {
@@ -42,24 +40,48 @@ const Transaction = () => {
     }
 
     const handleOnContactPress = (item: IContact) => {
-        const userRef = query(collection(db, 'users'), where('phoneNumber', '==', item.phoneNumber))
-        getDocs(userRef).then(snapshot => {
-            if (snapshot.empty) {
-                alert("Nomor yang anda pilih belum terdaftar. Beri tahu mereka untuk mendaftar terlebih dahulu untuk dapat melakukan transaksi")
-                return
-            } else {
-                snapshot.forEach(doc => {
-                    if (doc.data()?.isIDCardVerified === true) {
-                        bsRef.current?.close()
-                        navigation.navigate('new_transaction', {
-                            contact: item
-                        })
-                    } else {
-                        alert("Nomor yang anda pilih belum terverifikasi. Beri tahu mereka untuk melakukan verifikasi terlebih dahulu untuk dapat melakukan transaksi")
-                    }
-                })
-            }
-        })
+        /* const userRef = query(collection(db, 'users'), where('phoneNumber', '==', item.phoneNumber))
+         getDocs(userRef).then(snapshot => {
+             if (snapshot.empty) {
+                 alert(
+                     'Nomor yang anda pilih belum terdaftar. Beri tahu mereka untuk mendaftar terlebih dahulu untuk dapat melakukan transaksi'
+                 )
+             } else {
+                 snapshot.forEach(doc => {
+                     if (doc.data()?.isIDCardVerified === true) {
+                         bsRef.current?.close()
+                         navigation.navigate('new_transaction', {
+                             contact: item,
+                         })
+                     } else {
+                         alert(
+                             'Nomor yang anda pilih belum terverifikasi. Beri tahu mereka untuk melakukan verifikasi terlebih dahulu untuk dapat melakukan transaksi'
+                         )
+                     }
+                 })
+             }
+         })*/
+        firestore()
+            .collection('users')
+            .where('phoneNumber', '==', item.phoneNumber)
+            .get()
+            .then(snapshot => {
+                if (snapshot.empty) {
+                } else {
+                    snapshot.forEach(doc => {
+                        if (doc.data()?.isIDCardVerified === true) {
+                            bsRef.current?.close()
+                            navigation.navigate('new_transaction', {
+                                contact: item,
+                            })
+                        } else {
+                            alert(
+                                'Nomor yang anda pilih belum terverifikasi. Beri tahu mereka untuk melakukan verifikasi terlebih dahulu untuk dapat melakukan transaksi'
+                            )
+                        }
+                    })
+                }
+            })
     }
 
     const handleOnItemPress = (item: ITransactions) => {
@@ -72,7 +94,7 @@ const Transaction = () => {
         if (user?.isIDCardVerified === true) {
             bsRef.current?.expand()
         } else {
-            alert("Akun anda belum terverikasi silahkan verifikasi akun anda terlebih dahulu")
+            alert('Akun anda belum terverikasi silahkan verifikasi akun anda terlebih dahulu')
             setTimeout(() => {
                 navigation.navigate('profile_diri')
             }, 2000)
@@ -116,7 +138,8 @@ const Transaction = () => {
                                 name: 'add-outline',
                                 color: 'white',
                                 size: '5',
-                            }} />
+                            }}
+                        />
                         <Menu
                             backgroundColor='white'
                             shadow={2}
@@ -136,8 +159,7 @@ const Transaction = () => {
                                     </Pressable>
                                 )
                             }}>
-                            <Menu.Item
-                                onPress={handleClose}>
+                            <Menu.Item onPress={handleClose}>
                                 <Text>Keluar</Text>
                             </Menu.Item>
                         </Menu>
@@ -145,19 +167,15 @@ const Transaction = () => {
                 </Stack>
                 <TransactionList
                     transactions={transactions}
-                    onPress={handleOnItemPress} />
+                    onPress={handleOnItemPress}
+                />
                 <BottomSheet
                     index={-1}
                     ref={bsRefItem}
                     enablePanDownToClose={true}
                     animateOnMount={true}
                     snapPoints={snapPoints}>
-                    {
-                        trans && (
-                            <TransactionItem
-                                transaction={trans} />
-                        )
-                    }
+                    {trans && <TransactionItem transaction={trans} />}
                 </BottomSheet>
                 <BottomSheet
                     index={-1}
@@ -170,19 +188,19 @@ const Transaction = () => {
                         keyExtractor={item => item.uid}
                         renderItem={({ item }) => {
                             return (
-                                <VStack
-                                    p={2}>
-                                    <ContactList item={item} onPress={handleOnContactPress} />
+                                <VStack p={2}>
+                                    <ContactList
+                                        item={item}
+                                        onPress={handleOnContactPress}
+                                    />
                                 </VStack>
                             )
                         }}
                     />
                 </BottomSheet>
             </Stack>
-
         </Stack>
     )
 }
 
 export { Transaction }
-

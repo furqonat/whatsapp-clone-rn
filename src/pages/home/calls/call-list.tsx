@@ -1,25 +1,22 @@
-import { useContact, useUserInfo } from "hooks"
-import moment from "moment"
-// import { Avatar, IconButton, Stack, Text } from "native-base"
-import React, { useState } from "react"
-import { FlatList, Image, View, Text } from "react-native"
-import { TouchableOpacity } from "react-native-gesture-handler"
-import { Chip, IconButton } from "react-native-paper"
-import { ICall, useFirebase } from "utils"
+import { useContact, useUserInfo } from 'hooks'
+import moment from 'moment'
+import React, { useState } from 'react'
+import { FlatList, Image, Text, View } from 'react-native'
+import { TouchableOpacity } from 'react-native-gesture-handler'
+import { Chip } from 'react-native-paper'
+import { ICall, useFirebase } from 'utils'
 
 interface ICallGroup extends ICall {
-    length: number,
+    length: number
     calls?: ICall[]
 }
 
-
 const CallList: React.FC<{
-    calls: ICall[],
-    onClick?: (info: string) => void,
-    filterOptions?: string,
+    calls: ICall[]
+    onClick?: (info: string) => void
+    filterOptions?: string
     innerCalls?: (calls?: ICall[]) => void
-}> = (props) => {
-
+}> = props => {
     const [selected, setSelected] = useState<string | null>(null)
 
     const groupCalls = (calls: ICall[]) => {
@@ -30,7 +27,11 @@ const CallList: React.FC<{
             if (callGroup) {
                 const previousCall = calls[i - 1]
                 const diff = moment(previousCall.time).diff(moment(call.time), 'minutes')
-                if (diff <= 2 && call.callType === previousCall.callType && call.phoneNumber === previousCall.phoneNumber) {
+                if (
+                    diff <= 2 &&
+                    call.callType === previousCall.callType &&
+                    call.phoneNumber === previousCall.phoneNumber
+                ) {
                     callGroup.length += 1
                     callGroup?.calls?.push(call)
                 } else {
@@ -38,14 +39,14 @@ const CallList: React.FC<{
                     callGroup = {
                         ...call,
                         length: 1,
-                        calls: [call]
+                        calls: [call],
                     }
                 }
             } else {
                 callGroup = {
                     ...call,
                     length: 1,
-                    calls: [call]
+                    calls: [call],
                 }
             }
         }
@@ -55,12 +56,11 @@ const CallList: React.FC<{
         return callGroups
     }
 
-
     return (
         <View
             style={{
-                display:'flex',
-                flexDirection:'column'
+                display: 'flex',
+                flexDirection: 'column',
             }}>
             <FlatList
                 data={groupCalls(props.calls)}
@@ -76,27 +76,28 @@ const CallList: React.FC<{
                         onClick={(event: string) => {
                             props.onClick && props.onClick(event)
                             props.innerCalls && props.innerCalls(item.item?.calls)
-                        }} />
-                )}>
-            </FlatList>
+                        }}
+                    />
+                )}></FlatList>
         </View>
     )
 }
 
-
 const Item: React.FC<{
-    call: ICallGroup,
-    onSelect: (data: string) => void,
-    onClick: (data: string) => void,
-    filters?: string,
+    call: ICallGroup
+    onSelect: (data: string) => void
+    onClick: (data: string) => void
+    filters?: string
     selected?: boolean
-}> = (props) => {
-
-    const { call, onClick, onSelect, selected, filters } = props
+}> = props => {
+    const { call } = props
     const { user } = useFirebase()
-    const { contact } = useContact({ user: user, contactId: user?.uid === call.caller.uid ? call.receiver.uid : call.caller.uid })
+    const { contact } = useContact({
+        user,
+        contactId: user?.uid === call.caller.uid ? call.receiver.uid : call.caller.uid,
+    })
     const { userInfo } = useUserInfo({
-        uid: user?.uid === call.caller.uid ? call.receiver.phoneNumber : call.caller.phoneNumber
+        uid: user?.uid === call.caller.uid ? call.receiver.phoneNumber : call.caller.phoneNumber,
     })
 
     const getOwnerDisplayNameOrPhoneNumber = () => {
@@ -110,82 +111,62 @@ const Item: React.FC<{
         }
     }
 
-
     const getCallIcon = () => {
         switch (call.status) {
-            case "unanswered":
+            case 'unanswered':
                 if (call.phoneNumber !== user?.phoneNumber) {
-                    return "call-missed"
+                    return 'call-missed'
                 } else {
-                    return "call-made"
+                    return 'call-made'
                 }
             default:
                 if (call.phoneNumber !== user?.phoneNumber) {
-                    return "call-received"
+                    return 'call-received'
                 } else {
-                    return "call-made"
+                    return 'call-made'
                 }
         }
     }
 
-    const filterOptions = () => {
-        if (filters) {
-            if (getOwnerDisplayNameOrPhoneNumber()?.toLowerCase().includes(filters.toLowerCase())) {
-                return 'flex'
-            }
-            return 'none'
-        }
-        return 'flex'
-    }
-
-
     return (
-
         <TouchableOpacity>
             <View
                 style={{
                     display: 'flex',
-                    flexDirection:'row',
-                    alignItems:'center',
-                    justifyContent:'space-between',
-                    padding:10
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: 10,
                 }}>
-                <View style={{
-                    flexDirection:'row',
-                    alignItems:'center',
-                    paddingVertical:2
-                }}>
+                <View
+                    style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        paddingVertical: 2,
+                    }}>
                     <Image
                         style={{
                             width: 50,
                             height: 50,
                             borderRadius: 100,
-                            marginRight:10
+                            marginRight: 10,
                         }}
                         source={{
-                            uri: userInfo?.photoURL ? userInfo?.photoURL : undefined
-                        }} />
+                            uri: userInfo?.photoURL ? userInfo?.photoURL : undefined,
+                        }}
+                    />
                     <View
                         style={{
-                            flexDirection:'column',
+                            flexDirection: 'column',
                         }}>
-                        <Text >
-                            {
-                                getOwnerDisplayNameOrPhoneNumber()
-                            }
-                        </Text>
-                        <Text >
-                            <View style={{
-                    flexDirection:'row',
-                    justifyContent:'center',
-                    
-                }}  >
-                                <Chip
-                                    icon={getCallIcon()}>
-                                    {moment(call.time).format('hh:mm A')}
-                                </Chip>
-
-                                
+                        <Text>{getOwnerDisplayNameOrPhoneNumber()}</Text>
+                        <Text>
+                            <View
+                                style={{
+                                    flexDirection: 'row',
+                                    justifyContent: 'center',
+                                }}>
+                                <Chip icon={getCallIcon()}>{moment(call.time).format('hh:mm A')}</Chip>
                             </View>
                         </Text>
                     </View>

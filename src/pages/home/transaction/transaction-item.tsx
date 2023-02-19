@@ -1,13 +1,13 @@
-import { useNavigation } from "@react-navigation/native";
-import { StackNavigationProp } from "@react-navigation/stack";
-import * as Clipboard from 'expo-clipboard';
-import * as WebBrowser from 'expo-web-browser';
-import { doc, updateDoc } from "firebase/firestore";
-import moment from "moment";
-import { Button, Divider, Modal, Stack, Text, View } from "native-base";
-import { RootStackParamList } from "pages/screens";
-import React, { useState } from "react";
-import { ITransactions, db, useFirebase } from "utils";
+import { useNavigation } from '@react-navigation/native'
+import { StackNavigationProp } from '@react-navigation/stack'
+import * as Clipboard from 'expo-clipboard'
+import * as WebBrowser from 'expo-web-browser'
+import moment from 'moment'
+import { Button, Divider, Modal, Stack, Text, View } from 'native-base'
+import { RootStackParamList } from 'pages/screens'
+import React, { useState } from 'react'
+import { ITransactions, useFirebase } from 'utils'
+import firestore from '@react-native-firebase/firestore'
 
 type signInScreenProp = StackNavigationProp<RootStackParamList, 'signin'>
 
@@ -22,18 +22,16 @@ const TransactionItem = (props: { transaction: ITransactions }) => {
         id,
         transactionToken,
         payment_type,
-        senderUid
+        senderUid,
     } = props.transaction
-
 
     const { user } = useFirebase()
     const navigation = useNavigation<signInScreenProp>()
     const [alertDialog, setAlertDialog] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
 
-
     const openInNewTab = (url: string) => {
-        WebBrowser.openBrowserAsync(url).then(_ => { })
+        WebBrowser.openBrowserAsync(url).then(_ => {})
     }
 
     const getStatusColor = (status: string) => {
@@ -50,7 +48,6 @@ const TransactionItem = (props: { transaction: ITransactions }) => {
                 return 'blue.400'
         }
     }
-
 
     const getStatus = (status: string) => {
         switch (status) {
@@ -75,11 +72,9 @@ const TransactionItem = (props: { transaction: ITransactions }) => {
 
     const handlePressRefund = () => {
         navigation.navigate('refund', {
-            transactionId: id
+            transactionId: id,
         })
     }
-
-
 
     const handleConfirm = () => {
         setAlertDialog(true)
@@ -87,13 +82,23 @@ const TransactionItem = (props: { transaction: ITransactions }) => {
 
     const handleOnButtonPress = () => {
         setIsLoading(true)
-        const docRef = doc(db, 'transactions', id)
+        /*const docRef = doc(db, 'transactions', id)
         updateDoc(docRef, {
-            status: 'done'
+            status: 'done',
         }).then(() => {
             setIsLoading(false)
             setAlertDialog(false)
-        })
+        })*/
+        firestore()
+            .collection('users')
+            .doc(id)
+            .update({
+                status: 'done',
+            })
+            .then(() => {
+                setIsLoading(false)
+                setAlertDialog(false)
+            })
     }
 
     return (
@@ -104,22 +109,17 @@ const TransactionItem = (props: { transaction: ITransactions }) => {
                 direction={'column'}
                 alignItems={'center'}>
                 <View>
-                    <Stack
-                        direction={'column'}>
+                    <Stack direction={'column'}>
                         <Stack
                             justifyContent={'space-between'}
                             space={3}
                             direction={'row'}>
+                            <Text variant={'md'}>{transactionName}</Text>
                             <Text variant={'md'}>
-                                {transactionName}
-                            </Text>
-                            <Text variant={'md'}>
-                                {
-                                    Number(transactionAmount).toLocaleString('id-ID', {
-                                        style: 'currency',
-                                        currency: 'IDR'
-                                    })
-                                }
+                                {Number(transactionAmount).toLocaleString('id-ID', {
+                                    style: 'currency',
+                                    currency: 'IDR',
+                                })}
                             </Text>
                         </Stack>
                         <Text variant={'sm'}>
@@ -128,9 +128,7 @@ const TransactionItem = (props: { transaction: ITransactions }) => {
                                 variant={'sm'}>
                                 {getStatus(props?.transaction?.status)} &nbsp;
                             </Text>
-                            <Text>
-                                {moment(createdAt).format('DD MMMM YYYY')}
-                            </Text>
+                            <Text>{moment(createdAt).format('DD MMMM YYYY')}</Text>
                         </Text>
                         <Divider />
                         <Stack
@@ -141,20 +139,14 @@ const TransactionItem = (props: { transaction: ITransactions }) => {
                                 space={10}
                                 direction={'row'}
                                 justifyContent={'space-between'}>
-                                <Text variant={'sm'}>
-                                    Tipe Transaksi
-                                </Text>
-                                <Text variant={'sm'}>
-                                    {transactionType}
-                                </Text>
+                                <Text variant={'sm'}>Tipe Transaksi</Text>
+                                <Text variant={'sm'}>{transactionType}</Text>
                             </Stack>
                             <Stack
                                 space={10}
                                 direction={'row'}
                                 justifyContent={'space-between'}>
-                                <Text variant={'sm'}>
-                                    Info Transaksi
-                                </Text>
+                                <Text variant={'sm'}>Info Transaksi</Text>
                                 <Text
                                     color={transactionStatus === 'legal' ? 'green.400' : 'red.400'}
                                     fontWeight={'bold'}
@@ -166,9 +158,7 @@ const TransactionItem = (props: { transaction: ITransactions }) => {
                                 space={10}
                                 direction={'row'}
                                 justifyContent={'space-between'}>
-                                <Text variant={'sm'}>
-                                    Transaksi ID
-                                </Text>
+                                <Text variant={'sm'}>Transaksi ID</Text>
                                 <Text
                                     onPress={() => {
                                         Clipboard.setStringAsync(id).then(() => {
@@ -181,63 +171,50 @@ const TransactionItem = (props: { transaction: ITransactions }) => {
                             </Stack>
                         </Stack>
                         <Divider />
-                        <Stack
-                            mt={2}>
-                            {
-                                status !== 'ACTIVE' && status !== 'settlement' && status !== 'done' && status !== 'refund' && status !== 'finish' ? (
+                        <Stack mt={2}>
+                            {status !== 'ACTIVE' &&
+                            status !== 'settlement' &&
+                            status !== 'done' &&
+                            status !== 'refund' &&
+                            status !== 'finish' ? (
+                                <Stack
+                                    direction={'row'}
+                                    justifyContent={'space-between'}>
+                                    {transactionToken && senderUid === user?.uid && status !== 'expire' ? (
+                                        <Button onPress={() => openInNewTab(transactionToken.redirect_url)}>
+                                            <Text color={'white'}>Bayar</Text>
+                                        </Button>
+                                    ) : null}
+                                </Stack>
+                            ) : (
+                                <Stack
+                                    space={4}
+                                    direction={'column'}
+                                    justifyContent={'space-between'}>
                                     <Stack
                                         direction={'row'}
                                         justifyContent={'space-between'}>
-                                        {
-                                            transactionToken && senderUid === user?.uid && status !== 'expire' ? (
-                                                <Button
-                                                    onPress={() => openInNewTab(transactionToken.redirect_url)}>
-                                                    <Text color={'white'}>Bayar</Text>
-                                                </Button>
-                                            ) : null
-                                        }
+                                        <Text variant={'sm'}>Metode Pembayaran</Text>
+                                        {payment_type && <Text>{payment_type}</Text>}
                                     </Stack>
-                                ) : (
                                     <Stack
-                                        space={4}
-                                        direction={'column'}
+                                        direction={'row'}
                                         justifyContent={'space-between'}>
-                                        <Stack
-                                            direction={'row'}
-                                            justifyContent={'space-between'}>
-                                            <Text
-                                                variant={'sm'}>
-                                                Metode Pembayaran
-                                            </Text>
-                                            {
-                                                payment_type && (<Text>{payment_type}</Text>)
-                                            }
-                                        </Stack>
-                                        <Stack
-                                            direction={'row'}
-                                            justifyContent={'space-between'}>
-                                            {
-                                                status === 'settlement' ? (
-                                                    <Button
-                                                        onPress={handlePressRefund}
-                                                        backgroundColor={'yellow.600'}>
-                                                        <Text color={'white'}>Ajukan Refund</Text>
-                                                    </Button>
-                                                ) : null
-                                            }
-                                            {
-                                                status === 'settlement' ? (
-                                                    <Button
-                                                        onPress={handleConfirm}>
-                                                        <Text color={'white'}>Konfirmasi</Text>
-                                                    </Button>
-                                                ) : null
-                                            }
-
-                                        </Stack>
+                                        {status === 'settlement' ? (
+                                            <Button
+                                                onPress={handlePressRefund}
+                                                backgroundColor={'yellow.600'}>
+                                                <Text color={'white'}>Ajukan Refund</Text>
+                                            </Button>
+                                        ) : null}
+                                        {status === 'settlement' ? (
+                                            <Button onPress={handleConfirm}>
+                                                <Text color={'white'}>Konfirmasi</Text>
+                                            </Button>
+                                        ) : null}
                                     </Stack>
-                                )
-                            }
+                                </Stack>
+                            )}
                         </Stack>
                     </Stack>
                 </View>
@@ -278,4 +255,4 @@ const TransactionItem = (props: { transaction: ITransactions }) => {
     )
 }
 
-export { TransactionItem };
+export { TransactionItem }

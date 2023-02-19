@@ -1,25 +1,23 @@
 import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { useAvatar } from 'hooks'
-import { HStack, Icon, IconButton, Image, Text, VStack } from 'native-base'
+import { HStack, Icon, Image, Text, VStack } from 'native-base'
 import { RootStackParamList } from 'pages/screens'
 import React, { useEffect, useState } from 'react'
 import { TouchableOpacity } from 'react-native-gesture-handler'
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons'
 import { useFirebase } from 'utils'
 
-type profilePublikScreenProp = StackNavigationProp<RootStackParamList, 'profile_publik' | 'tentang_kami' | 'profile_diri' | 'privasi'>
-
+type RefStack = StackNavigationProp<RootStackParamList, 'profile_publik' | 'tentang_kami' | 'profile_diri' | 'privasi'>
 
 const Profile = () => {
-
-    const navigation = useNavigation<profilePublikScreenProp>()
+    const navigation = useNavigation<RefStack>()
 
     const handlePublik = () => {
         navigation.navigate('profile_publik')
     }
 
-    const handleDiri = () =>{
+    const handleDiri = () => {
         navigation.navigate('profile_diri')
     }
 
@@ -34,17 +32,16 @@ const Profile = () => {
     const { user } = useFirebase()
 
     const { avatar } = useAvatar({
-        uid: user?.uid
+        uid: user?.uid,
     })
 
-    const [displayName, setDisplayName] = useState("")
+    const [displayName, setDisplayName] = useState('')
 
     useEffect(() => {
         if (user) {
-            setDisplayName(user?.displayName || "")
+            setDisplayName(user?.displayName || '')
         }
     }, [user])
-
 
     return (
         <VStack>
@@ -60,7 +57,8 @@ const Profile = () => {
                         width={'50px'}
                         alt={'avatar of me'}
                         height={'50px'}
-                        borderRadius={'full'} />
+                        borderRadius={'full'}
+                    />
                     <VStack>
                         <Text
                             fontSize={'20px'}
@@ -84,45 +82,30 @@ const Profile = () => {
                     fontSize={'20px'}>
                     Pengaturan
                 </Text>
-                <TouchableOpacity
-                    onPress={handlePublik}>
+                <TouchableOpacity onPress={handlePublik}>
                     <HStack
                         alignItems={'center'}
                         space={2}>
-
                         <Icon
-                            as={
-                                <MaterialCommunityIcons
-                                    name='account'
-                                />
-                            }
+                            as={<MaterialCommunityIcons name='account' />}
                             size={'2xl'}
-                            name={'person'} />
+                            name={'person'}
+                        />
 
-                        <Text
-                            fontWeight={'bold'}>
-                            Publik profil
-                        </Text>
+                        <Text fontWeight={'bold'}>Publik profil</Text>
                     </HStack>
                 </TouchableOpacity>
                 <TouchableOpacity onPress={handleDiri}>
                     <HStack
                         alignItems={'center'}
                         space={2}>
-
                         <Icon
-                            as={
-                                <MaterialCommunityIcons
-                                    name='account-check'
-                                />
-                            }
+                            as={<MaterialCommunityIcons name='account-check' />}
                             size={'2xl'}
-                            name={'person'} />
+                            name={'person'}
+                        />
 
-                        <Text
-                            fontWeight={'bold'}>
-                            Data diri
-                        </Text>
+                        <Text fontWeight={'bold'}>Data diri</Text>
                     </HStack>
                 </TouchableOpacity>
                 <Text
@@ -134,40 +117,26 @@ const Profile = () => {
                     <HStack
                         alignItems={'center'}
                         space={2}>
-
                         <Icon
-                            as={
-                                <MaterialCommunityIcons
-                                    name='information'
-                                />
-                            }
+                            as={<MaterialCommunityIcons name='information' />}
                             size={'2xl'}
-                            name={'person'} />
+                            name={'person'}
+                        />
 
-                        <Text
-                            fontWeight={'bold'}>
-                            Tentang Kami
-                        </Text>
+                        <Text fontWeight={'bold'}>Tentang Kami</Text>
                     </HStack>
                 </TouchableOpacity>
                 <TouchableOpacity onPress={handlePrivasi}>
                     <HStack
                         alignItems={'center'}
                         space={2}>
-
                         <Icon
-                            as={
-                                <MaterialCommunityIcons
-                                    name='help'
-                                />
-                            }
+                            as={<MaterialCommunityIcons name='help' />}
                             size={'2xl'}
-                            name={'person'} />
+                            name={'person'}
+                        />
 
-                        <Text
-                            fontWeight={'bold'}>
-                            Privasi
-                        </Text>
+                        <Text fontWeight={'bold'}>Privasi</Text>
                     </HStack>
                 </TouchableOpacity>
             </VStack>
