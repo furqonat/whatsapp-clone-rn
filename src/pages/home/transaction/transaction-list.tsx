@@ -70,6 +70,10 @@ const Item = (props: {
                 return 'Refund'
             case 'finish':
                 return 'Transaksi sukses'
+            case 'reject':
+                return 'Transaksi ditolak'
+            case 'refund-accepted':
+                return 'Refund diterima'
             default:
                 return 'Aktif'
         }
@@ -87,6 +91,12 @@ const Item = (props: {
                 return 'red.400'
             case 'refund':
                 return 'red.400'
+            case 'finish':
+                return 'green.400'
+            case 'reject':
+                return 'red.400'
+            case 'refund-accepted':
+                return 'green.400'
             default:
                 return 'blue.400'
         }

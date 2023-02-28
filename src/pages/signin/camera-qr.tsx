@@ -24,7 +24,6 @@ const QrCamera = () => {
 
     const handleBarCodeScanned = (data: any) => {
         const hash = encrypt(`${SALT_KEY}`)
-        console.log('runn')
         const value = JSON.stringify({
             phoneNumber: user?.phoneNumber,
             verificationId: data.data,
@@ -33,12 +32,10 @@ const QrCamera = () => {
             .post(`${BACKEND_URL}api/v1/qr-code/`, {
                 encrypted: hash(value),
             })
-            .then((res) => {
-                console.log(res.data)
-                console.log('oke')
+            .then(() => {
                 setScanned(true)
             })
-            .catch(() => { })
+            .catch(() => {})
     }
 
     if (hasPermission === null) {

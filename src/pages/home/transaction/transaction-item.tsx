@@ -44,6 +44,16 @@ const TransactionItem = (props: { transaction: ITransactions }) => {
                 return 'green.400'
             case 'expire':
                 return 'red.400'
+            case 'done':
+                return 'green.400'
+            case 'refund':
+                return 'red.400'
+            case 'finish':
+                return 'green.400'
+            case 'reject':
+                return 'red.400'
+            case 'refund-accepted':
+                return 'red.400'
             default:
                 return 'blue.400'
         }
@@ -65,6 +75,10 @@ const TransactionItem = (props: { transaction: ITransactions }) => {
                 return 'Refund'
             case 'finish':
                 return 'Transaksi sukses'
+            case 'reject':
+                return 'Transaksi ditolak'
+            case 'refund-accepted':
+                return 'Refund diterima'
             default:
                 return 'Aktif'
         }
@@ -90,7 +104,7 @@ const TransactionItem = (props: { transaction: ITransactions }) => {
             setAlertDialog(false)
         })*/
         firestore()
-            .collection('users')
+            .collection('transactions')
             .doc(id)
             .update({
                 status: 'done',
@@ -200,7 +214,8 @@ const TransactionItem = (props: { transaction: ITransactions }) => {
                                     <Stack
                                         direction={'row'}
                                         justifyContent={'space-between'}>
-                                        {status === 'settlement' ? (
+                                        {status === 'settlement' &&
+                                        props.transaction?.receiverInfo?.phoneNumber !== user?.phoneNumber ? (
                                             <Button
                                                 onPress={handlePressRefund}
                                                 backgroundColor={'yellow.600'}>

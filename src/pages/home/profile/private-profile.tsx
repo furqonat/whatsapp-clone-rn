@@ -8,8 +8,18 @@ import * as ImagePicker from 'expo-image-picker'
 import moment from 'moment'
 import { IconButton } from 'native-base'
 import React, { useEffect, useState } from 'react'
-import { Image, ScrollView, StatusBar, Text, TouchableOpacity, View } from 'react-native'
+import {
+    ActivityIndicator,
+    Image,
+    ScrollView,
+    StatusBar,
+    Text,
+    ToastAndroid,
+    TouchableOpacity,
+    View,
+} from 'react-native'
 import { useFirebase } from 'utils'
+import { Button, Dialog } from 'react-native-paper'
 
 interface Verification {
     image: string
@@ -28,13 +38,6 @@ const useVerification = (props: { phoneNumber?: string | null | undefined }) => 
 
     useEffect(() => {
         if (props?.phoneNumber) {
-            /* const docRef = doc(db, 'users', props.phoneNumber, 'verification', props.phoneNumber)
-             const unsubscribe = onSnapshot(docRef, doc => {
-                 if (doc.exists()) {
-                     setVerification(doc.data() as Verification)
-                 }
-             })
-             return () => unsubscribe()*/
             firestore()
                 .collection('users')
                 .where('phoneNumber', '==', props?.phoneNumber)
@@ -51,7 +54,11 @@ const useVerification = (props: { phoneNumber?: string | null | undefined }) => 
                                         setVerification(querySnapshot.data() as Verification)
                                     }
                                 })
+                                .catch(error => {
+                                    alert(error)
+                                })
                         } else {
+                            alert('User not found')
                         }
                     })
                 })
@@ -59,11 +66,13 @@ const useVerification = (props: { phoneNumber?: string | null | undefined }) => 
             return () => {}
         }
     }, [props?.phoneNumber])
+
     return { verification }
 }
 
 const PrivateProfile = () => {
     const navigation = useNavigation()
+    const [dialog, setDialog] = useState(false)
 
     const handleBack = () => {
         navigation.goBack()
@@ -108,14 +117,12 @@ const PrivateProfile = () => {
     const handleOpenImagePicker = async () => {
         const result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ImagePicker.MediaTypeOptions.Images,
-            allowsEditing: true,
-            aspect: [4, 3],
-            quality: 1,
+            allowsEditing: false,
         })
 
         if (!result.cancelled) {
             setImage(result.uri)
-            const file = await fetch(result.uri)
+            const file = await fetch(`${result.uri}`)
                 .then(res => res.blob())
                 .then(blob => new File([blob], `${Date.now()}.png`, { type: 'image/png' }))
             setImageFile(file)
@@ -132,38 +139,7 @@ const PrivateProfile = () => {
 
     const handleSave = () => {
         if (user?.phoneNumber) {
-            /* const storage = getStorage()
-             const docRef = query(collection(db, 'users'), where('phoneNumber', '==', user?.phoneNumber))
-             getDocs(docRef).then(docData => {
-                 if (docData.empty) {
-                     console.log('No matching documents.')
-                 } else {
-                     docData.forEach(document => {
-                         const docRef = doc(db, 'users', document.id, 'verification', document.id)
-                         updateDoc(docRef, {
-                             address,
-                             name,
-                             nik,
-                             dob,
-                             date,
-                             bankName,
-                             bankAccount,
-                             bankAccountName,
-                         }).then(() => {
-                             if (imageFile) {
-                                 const storageRef = ref(storage, `users/${user?.phoneNumber}/id-card`)
-                                 uploadBytes(storageRef, imageFile).then(() => {
-                                     getDownloadURL(storageRef).then(url => {
-                                         updateDoc(docRef, {
-                                             image: url,
-                                         }).then(() => {})
-                                     })
-                                 })
-                             }
-                         })
-                     })
-                 }
-             })*/
+            setDialog(true)
             const st = storage().ref(`users/${user?.phoneNumber}/id-card`)
             firestore()
                 .collection('users')
@@ -175,7 +151,7 @@ const PrivateProfile = () => {
                             return documentSnapshot.ref
                                 .collection('verification')
                                 .doc(user.phoneNumber)
-                                .update({
+                                .set({
                                     address,
                                     name,
                                     nik,
@@ -199,17 +175,35 @@ const PrivateProfile = () => {
                                                             },
                                                             { merge: true }
                                                         )
-                                                        .then(() => {})
+                                                        .then(() => {
+                                                            handleBack()
+                                                            setDialog(false)
+                                                        })
+                                                        .catch(error => {
+                                                            setDialog(false)
+                                                            ToastAndroid.show(error, ToastAndroid.SHORT)
+                                                        })
                                                 }
                                             })
                                         })
+                                    } else {
+                                        setDialog(false)
+                                        handleBack()
                                     }
                                 })
+                                .catch(error => {
+                                    setDialog(false)
+                                    ToastAndroid.show(error, ToastAndroid.SHORT)
+                                })
                         } else {
-                            return () => {}
+                            setDialog(false)
+                            ToastAndroid.show('User not found', ToastAndroid.SHORT)
                         }
                     })
                 })
+        } else {
+            ToastAndroid.show('User not found', ToastAndroid.SHORT)
+            setDialog(false)
         }
     }
 
@@ -356,15 +350,29 @@ const PrivateProfile = () => {
                                 setDate(date?.toISOString())
                             }}
                             text={`${dob}`} /> */}
-                        <ButtonPrimary
-                            onPress={handleSave}
-                            title={'Save'}
-                            px={12}
-                            py={'35%'}
-                        />
+                        <Button
+                            mode={'contained'}
+                            onPress={handleSave}>
+                            Simpan
+                        </Button>
                     </View>
                 </View>
             </ScrollView>
+            <Dialog visible={dialog}>
+                <Dialog.Content>
+                    <View
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                        }}>
+                        <ActivityIndicator
+                            size='large'
+                            color='#5b21b6'
+                        />
+                    </View>
+                </Dialog.Content>
+            </Dialog>
         </View>
     )
 }

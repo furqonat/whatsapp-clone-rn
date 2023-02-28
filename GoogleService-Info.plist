@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CLIENT_ID</key>
+	<string>1002742390465-cg2nb01qdemfmfrivm5lnp7c4bdr4vaj.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.1002742390465-cg2nb01qdemfmfrivm5lnp7c4bdr4vaj</string>
+	<key>API_KEY</key>
+	<string>AIzaSyBpVFdgpzSkiupFxojbcpgbmQgG5PYNFK8</string>
+	<key>GCM_SENDER_ID</key>
+	<string>1002742390465</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.rekberin.app</string>
+	<key>PROJECT_ID</key>
+	<string>rekberindo-2e42c</string>
+	<key>STORAGE_BUCKET</key>
+	<string>rekberindo-2e42c.appspot.com</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:1002742390465:ios:1861f9f5ee6191e25dfe40</string>
+</dict>
+</plist>

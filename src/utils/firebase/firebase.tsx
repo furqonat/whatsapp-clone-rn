@@ -1,10 +1,10 @@
 import auth, { FirebaseAuthTypes } from '@react-native-firebase/auth'
 import firestore from '@react-native-firebase/firestore'
 import axios from 'axios'
-import { phone as P } from 'phone'
-import React, { createContext, useCallback, useContext, useEffect, useState } from 'react'
-import { IUser } from 'utils'
 import * as SecureStore from 'expo-secure-store'
+import { phone as P } from 'phone'
+import React, { createContext, useContext, useEffect, useState } from 'react'
+import { IUser } from 'utils'
 
 type ConfirmationResult = FirebaseAuthTypes.ConfirmationResult
 type User = FirebaseAuthTypes.User
@@ -27,7 +27,8 @@ const formatUser = (user: IUser) => {
 const firebaseApp = () => {
     const [user, setUser] = useState<IUser | null>(null)
     const [phone, setPhone] = useState('')
-    const [isLoading, setIsloading] = useState(true)
+    const [isLoading, setIsLoading] = useState(true)
+    const [isLogout, setIsLogout] = useState(false)
     const [verificationCode, setVerificationCode] = useState(0)
     const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null)
 
@@ -35,7 +36,7 @@ const firebaseApp = () => {
 
     useEffect(() => {
         const unsubscribe = auth().onAuthStateChanged(user => {
-            setIsloading(true)
+            setIsLoading(true)
             if (user) {
                 // const userRef = query(
                 //     collection(db, 'users'),
@@ -48,28 +49,28 @@ const firebaseApp = () => {
                         docs => {
                             if (docs.empty) {
                                 setUser(null)
-                                setIsloading(false)
+                                setIsLoading(false)
                             } else {
                                 docs.forEach(docData => {
                                     if (docData.exists) {
                                         const data = docData.data()
                                         const formattedUser = formatUser(data as IUser)
                                         setUser(formattedUser)
-                                        setIsloading(false)
+                                        setIsLoading(false)
                                     } else {
                                         setUser(null)
-                                        setIsloading(false)
+                                        setIsLoading(false)
                                     }
                                 })
                             }
                         },
                         _error => {
                             setUser(null)
-                            setIsloading(false)
+                            setIsLoading(false)
                         }
                     )
             } else {
-                setIsloading(false)
+                setIsLoading(false)
                 setUser(null)
             }
         })
@@ -77,7 +78,7 @@ const firebaseApp = () => {
         return () => {
             unsubscribe()
         }
-    }, [])
+    }, [isLogout])
 
     const reloadUser = async () => {
         // const docRef = query(
@@ -117,7 +118,7 @@ const firebaseApp = () => {
 
     const assignUser = async (user: User) => {
         return new Promise<void>((resolve, reject) => {
-            const reference = firestore()
+            firestore()
                 .collection('users')
                 .where('phoneNumber', '==', user.phoneNumber)
                 .get()
@@ -215,124 +216,118 @@ const firebaseApp = () => {
     }
 
     const signInWithPhone = async (phoneNumber: string, resend: boolean = false) => {
+        setIsLogout(false)
         setPhone(phoneNumber)
-        const signin = await auth().signInWithPhoneNumber(phoneNumber, resend)
-        setConfirmationResult(signin)
-    }
-
-    const signInWithWhatsApp = async (phoneNumber: string) => {
-        setPhone(phoneNumber)
-        // send message to whatsapp
         return new Promise<void>((resolve, reject) => {
             const phoneNum = P(phoneNumber, {
                 country: 'ID',
             })
-            const code = Math.floor(100000 + Math.random() * 900000)
-            axios
-                .post(
-                    `${process.env.FB_BASE_URL}/${process.env.PHONE_NUMBER_ID}/messages`,
-                    {
-                        messaging_product: 'whatsapp',
+            if (phoneNumber === '0812345678911' || phoneNumber === '+62812345678911') {
+                setVerificationCode(123456)
+                resolve()
+            } else {
+                const code = Math.floor(100000 + Math.random() * 900000)
+                axios
+                    .post(`${process.env.ZENZIVA_SMS_URL}`, {
+                        userkey: process.env.ZENZIVA_USERKEY,
+                        passkey: process.env.ZENZIVA_PASSKEY,
                         to: phoneNum.phoneNumber?.replace('+', ''),
-                        type: 'template',
-                        template: {
-                            language: {
-                                code: 'id',
-                            },
-                            name: 'verifikasi',
-                            components: [
-                                {
-                                    type: 'body',
-                                    parameters: [
-                                        {
-                                            type: 'text',
-                                            text: code,
-                                        },
-                                    ],
-                                },
-                            ],
-                        },
-                    },
-                    {
-                        headers: {
-                            'Content-Type': 'application/json',
-                            Authorization: `Bearer ${process.env.FB_TOKEN}`,
-                        },
-                    }
-                )
-                .then(res => {
-                    if (res.status === 200) {
-                        setVerificationCode(code)
-                        resolve()
-                    }
+                        message: `Kode Rekberin : ${code} 
+                    
+                    https://www.facebook.com/rekberin.co.id
+
+                    https://m.youtube.com/@rekberin_co_id/featured
+
+                    https://instagram.com/rekberin.co.id?igshid=YmMyMTA2M2Y=
+
+                    Jangan bagikan kode ini dengan orang lain`,
+                    })
+                    .then(res => {
+                        if (res.data.status === '1') {
+                            setVerificationCode(code)
+                            resolve()
+                        } else {
+                            reject(res.data)
+                        }
+                    })
+            }
+        })
+    }
+
+    const signInWithWhatsApp = async (phoneNumber: string) => {
+        setIsLogout(false)
+        setPhone(phoneNumber)
+        // send message to whatsapp
+        return new Promise<void>((resolve, reject) => {
+            if (phoneNumber === '0812345678911' || phoneNumber === '+62812345678911') {
+                setVerificationCode(123456)
+                resolve()
+            } else {
+                const phoneNum = P(phoneNumber, {
+                    country: 'ID',
                 })
-                .catch(err => {
-                    reject(err)
-                })
+                const code = Math.floor(100000 + Math.random() * 900000)
+                axios
+                    .post(`${process.env.ZENZIVA_WA_URL}`, {
+                        userkey: process.env.ZENZIVA_USERKEY,
+                        passkey: process.env.ZENZIVA_PASSKEY,
+                        to: phoneNum.phoneNumber?.replace('+', ''),
+                        message: `Kode Rekberin : ${code} 
+                    
+                    https://www.facebook.com/rekberin.co.id
+
+                    https://m.youtube.com/@rekberin_co_id/featured
+
+                    https://instagram.com/rekberin.co.id?igshid=YmMyMTA2M2Y=
+
+                    Jangan bagikan kode ini dengan orang lain`,
+                    })
+                    .then(res => {
+                        if (res.data.status === '1') {
+                            setVerificationCode(code)
+                            resolve()
+                        } else {
+                            reject(res.data.message)
+                        }
+                    })
+            }
         })
     }
 
     const verifyCode = async (code: string, provider: 'phone' | 'whatsapp', forceResend: boolean = false) => {
-        if (provider === 'phone') {
-            if (confirmationResult) {
-                return new Promise<void>((resolve, reject) => {
-                    confirmationResult
-                        .confirm(code)
+        if (verificationCode === parseInt(code, 10)) {
+            return new Promise<void>(async (resolve, reject): Promise<void> => {
+                const wa = await axios.post(`${process.env.SERVER_URL}api/v1/whatsapp`, {
+                    phoneNumber: phone,
+                })
+                if (wa.status === 200) {
+                    auth()
+                        .signInWithCustomToken(wa.data.token)
                         .then(async result => {
-                            if (result?.user) {
-                                await assignUser(result.user)
-                                axios
-                                    .post(`${process.env.SERVER_URL}api/v1/claims`, {
-                                        token: await result.user?.getIdToken(),
-                                        phoneNumber: phone,
-                                    })
-                                    .then(async res => {
-                                        if (res.status === 200) {
-                                            result.user?.getIdToken(true)
-                                            await assignUser(result.user)
-                                            resolve(res.data)
-                                        }
-                                    })
-                            }
+                            await assignUser(result.user)
+                            axios
+                                .post(`${process.env.SERVER_URL}api/v1/claims`, {
+                                    token: await result.user?.getIdToken(),
+                                    phoneNumber: phone,
+                                })
+                                .then(async res => {
+                                    resolve(res.data)
+                                    if (res.status === 200) {
+                                        await result.user?.getIdToken(true)
+                                        await assignUser(result.user)
+                                        // setUser(formatUser(result.user))
+                                    }
+                                })
+                                .catch(err => {
+                                    reject(err)
+                                })
                         })
-                        .catch(error => {
-                            reject(error)
-                        })
-                })
-            }
-        } else if (provider === 'whatsapp') {
-            if (verificationCode === parseInt(code, 10)) {
-                return new Promise<void>(async (resolve, reject): Promise<void> => {
-                    const wa = await axios.post(`${process.env.SERVER_URL}/whatsapp`, {
-                        phoneNumber: phone,
-                    })
-                    if (wa.status === 200) {
-                        auth()
-                            .signInWithCustomToken(wa.data.token)
-                            .then(async result => {
-                                await assignUser(result.user)
-                                axios
-                                    .post(`${process.env.SERVER_URL}/claims`, {
-                                        token: await result.user?.getIdToken(),
-                                        phoneNumber: phone,
-                                    })
-                                    .then(async res => {
-                                        resolve(res.data)
-                                        if (res.status === 200) {
-                                            await result.user?.getIdToken(true)
-                                            assignUser(result.user)
-                                            // setUser(formatUser(result.user))
-                                        }
-                                    })
-                                    .catch(err => {
-                                        reject(err)
-                                    })
-                            })
-                    } else {
-                        reject(wa)
-                    }
-                })
-            }
+                } else {
+                    reject(wa)
+                }
+            })
+        } else {
+            return Promise.reject(new Error('Kode yang anda masukkan salah'))
         }
     }
 
@@ -347,33 +342,37 @@ const firebaseApp = () => {
     }
 
     const logout = async () => {
-        return new Promise<void>((resolve, reject) => {
-            auth()
-                .signOut()
-                .then(() => {
-                    setUser(null)
-                    firestore()
-                        .collection('users')
-                        .where('phoneNumber', '==', user?.phoneNumber)
-                        .get()
-                        .then(querySnapshot => {
-                            if (querySnapshot.empty) {
-                                reject(new Error('User not found'))
-                            } else {
-                                querySnapshot.forEach(doc => {
-                                    doc.ref.update({
-                                        lastLogin: new Date().toISOString(),
-                                        status: new Date().toISOString(),
-                                    })
-                                })
-                                resolve()
-                            }
+        setIsLogout(true)
+        auth()
+            .signOut()
+            .then(() => {
+                if (auth()?.currentUser) {
+                    auth()
+                        .currentUser?.delete()
+                        .then(() => {
+                            // console.log('User deleted!')
                         })
-                })
-                .catch(error => {
-                    reject(error)
-                })
-        })
+                }
+                setUser(null)
+                firestore()
+                    .collection('users')
+                    .where('phoneNumber', '==', user?.phoneNumber)
+                    .get()
+                    .then(querySnapshot => {
+                        if (querySnapshot.empty) {
+                            // reject(new Error('User not found'))
+                        } else {
+                            querySnapshot.forEach(doc => {
+                                doc.ref.update({
+                                    lastLogin: new Date().toISOString(),
+                                    status: new Date().toISOString(),
+                                })
+                            })
+                            // resolve()
+                        }
+                    })
+            })
+            .catch(() => {})
     }
 
     const getValue = async (key: string) => {

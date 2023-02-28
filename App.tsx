@@ -1,16 +1,7 @@
-import * as Notifications from 'expo-notifications'
 import { extendTheme, NativeBaseProvider } from 'native-base'
 import { FirebaseProvider } from 'utils'
 
 import { Main } from './src'
-
-Notifications.setNotificationHandler({
-    handleNotification: async () => ({
-        shouldShowAlert: true,
-        shouldPlaySound: true,
-        shouldSetBadge: false,
-    }),
-})
 
 const newColorTheme = {
     primary: {

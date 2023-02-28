@@ -139,11 +139,18 @@ const ChatItem = ({ route }: Props) => {
         setMessage([chat, ...message])
     }
 
-    const newTransaction = (item: IContact) => {
+    const newTransaction = (item?: IContact) => {
         if (!receiver?.isIDCardVerified) {
             alert('Akun ini belum terverifikasi')
+        } else if (!user?.isIDCardVerified) {
+            alert('Akun anda belum terverifikasi')
+            navigation.navigate('profile_diri')
         } else {
-            navigation.navigate('new_transaction', { contact: item })
+            if (item) {
+                navigation.navigate('new_transaction', { contact: item })
+            } else {
+                navigation.navigate('new_transaction', { contact: receiver })
+            }
         }
     }
 
@@ -382,7 +389,6 @@ const ChatItem = ({ route }: Props) => {
                 onClose={handleOpenModal}
                 safeAreaTop={true}>
                 <Modal.Content>
-                    <Modal.CloseButton />
                     <Modal.Header>
                         <Text>Simpan Kontan</Text>
                     </Modal.Header>

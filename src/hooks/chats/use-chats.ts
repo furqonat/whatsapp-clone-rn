@@ -35,13 +35,17 @@ const useChats = (props: { id?: string | null; user?: IUser | null }) => {
                             values.push(data)
                         }
                     })
-                    setChatList(
-                        values.sort(
-                            (a: any, b: any) =>
-                                new Date(b.lastMessage.createdAt).getTime() -
-                                new Date(a.lastMessage.createdAt).getTime()
+                    if (values) {
+                        setChatList(
+                            values.sort(
+                                (a: any, b: any) =>
+                                    new Date(b.lastMessage.createdAt).getTime() -
+                                    new Date(a.lastMessage.createdAt).getTime()
+                            )
                         )
-                    )
+                    } else {
+                        setChatList(values)
+                    }
                 })
             return () => unsubscribe
         } else {
@@ -125,10 +129,14 @@ const useChats = (props: { id?: string | null; user?: IUser | null }) => {
                         .map(doc => [{ id: doc.id, ...doc.data() }])
                         .map((item: any) => item[0])
 
-                    const orderedData = data.sort((a: any, b: any) => {
-                        return new Date(b.message.createdAt).getTime() - new Date(a.message.createdAt).getTime()
-                    })
-                    setMessages(orderedData as IChatMessage[])
+                    if (data) {
+                        const orderedData = data?.sort((a: any, b: any) => {
+                            return new Date(b.message?.createdAt).getTime() - new Date(a.message?.createdAt).getTime()
+                        })
+                        setMessages(orderedData as IChatMessage[])
+                    } else {
+                        setMessages(data as IChatMessage[])
+                    }
                 })
             return () => unsubscribe
         } else {

@@ -29,37 +29,6 @@ function Form() {
     const handlePress = () => {
         if (displayName?.length > 0) {
             setLoading(true)
-            /*  const queryRef = query(collection(db, 'users'), where('uid', '==', `${user?.uid}`))
-              onSnapshot(queryRef, querySnapshot => {
-                  if (querySnapshot.empty) {
-                      toast.show({
-                          title: 'No matching User',
-                      })
-                      setLoading(false)
-                  } else {
-                      querySnapshot.forEach(doc => {
-                          updateDoc(doc.ref, {
-                              displayName,
-                          })
-                              .then(() => {
-                                  setLoading(false)
-                                  setValue(
-                                      USER_KEY,
-                                      JSON.stringify({
-                                          ...user,
-                                      })
-                                  )
-                                  navigation.navigate('tabbar')
-                              })
-                              .catch(error => {
-                                  setLoading(false)
-                                  toast.show({
-                                      title: error.message,
-                                  })
-                              })
-                      })
-                  }
-              })*/
             firestore()
                 .collection('users')
                 .where('uid', '==', `${user?.uid}`)
@@ -117,7 +86,7 @@ function Form() {
             quality: 1,
         })
 
-        if (result.cancelled) {
+        if (result.canceled) {
             const toastId = 'cancel'
             if (!toast.isActive(toastId)) {
                 toast.show({
@@ -126,12 +95,14 @@ function Form() {
                 })
             }
         } else {
-            setPhoto(result.uri)
-            // convert uri into file
-            const file = await fetch(result.uri)
-                .then(res => res.blob())
-                .then(blob => new File([blob], `${Date.now()}.png`, { type: 'image/png' }))
-            uploadAvatar(file).then(() => {})
+            if (result.assets && result.assets?.length > 0) {
+                setPhoto(result.assets[0].uri)
+                // convert uri into file
+                const file = await fetch(result.assets[0].uri)
+                    .then(res => res.blob())
+                    .then(blob => new File([blob], `${Date.now()}.png`, { type: 'image/png' }))
+                uploadAvatar(file).then(() => {})
+            }
         }
     }
 

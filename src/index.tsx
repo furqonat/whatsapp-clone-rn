@@ -1,6 +1,9 @@
+import auth from '@react-native-firebase/auth'
 import firestore from '@react-native-firebase/firestore'
 import { NavigationContainer } from '@react-navigation/native'
 import { createStackNavigator } from '@react-navigation/stack'
+import * as Notifications from 'expo-notifications'
+import moment from 'moment'
 import { Image, VStack } from 'native-base'
 import {
     AboutUs,
@@ -17,10 +20,59 @@ import {
     Refund,
     SignIn,
 } from 'pages'
+import { Transaction as TransactionDetail } from 'pages/home/users/transaction'
 import { RootStackParamList } from 'pages/screens'
 import { useEffect, useRef, useState } from 'react'
 import { AppState } from 'react-native'
 import { useFirebase, USER_KEY } from 'utils'
+
+Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+        shouldShowAlert: true,
+        shouldPlaySound: true,
+        shouldSetBadge: false,
+    }),
+})
+
+async function schedulePushNotification(props: { title: string; body: string; identifier?: string }) {
+    await Notifications.scheduleNotificationAsync({
+        identifier: props.identifier,
+        content: {
+            title: props.title,
+            body: props.body,
+        },
+        trigger: { seconds: 1 },
+    })
+}
+
+async function subscribeForNotification(id: string | number, phoneNumber: string) {
+    firestore()
+        .collection('chats')
+        .doc(id.toString())
+        .collection('messages')
+        .onSnapshot(querySnapshot => {
+            if (querySnapshot.empty) {
+                // todo
+            } else {
+                querySnapshot.docChanges().forEach(change => {
+                    if (change.type === 'added') {
+                        const receiverPhoneNumber = change.doc.data().receiver.phoneNumber
+                        const messageAt = change.doc.data().message.createdAt
+                        const senderName = change.doc.data().sender.displayName
+                        const type = change.doc.data().type === 'text'
+                        const diff = moment().diff(moment(messageAt), 'minutes')
+                        if (phoneNumber === receiverPhoneNumber && diff < 1) {
+                            schedulePushNotification({
+                                identifier: receiverPhoneNumber,
+                                title: senderName,
+                                body: type ? change.doc.data().message.text : 'Mengirimkan gambar',
+                            })
+                        }
+                    }
+                })
+            }
+        })
+}
 
 const Stack = createStackNavigator<RootStackParamList>()
 
@@ -82,9 +134,18 @@ const Main = () => {
             } else {
                 setIndexScreen('signin')
                 setLoading(false)
+                if (auth().currentUser) {
+                    auth()
+                        .signOut()
+                        .then(() => {
+                            if (auth()?.currentUser) {
+                                auth()?.currentUser?.delete()
+                            }
+                        })
+                }
             }
         })
-    }, [])
+    }, [auth])
 
     useEffect(() => {
         const subscription = AppState.addEventListener('change', nextAppState => {
@@ -92,14 +153,27 @@ const Main = () => {
                 if (users && users.length > 20) {
                     if (user && user?.phoneNumber) {
                         if (appState.current.match(/inactive|background/) && nextAppState === 'active') {
-                            updateStatusUser(user?.phoneNumber as string, true).then(() => {
-                                console.log('tidak aktif')
-                            })
+                            updateStatusUser(user?.phoneNumber as string, true).then(() => {})
                         } else {
                             appState.current = nextAppState
-                            updateStatusUser(user?.phoneNumber as string, false).then(() => {
-                                console.log('aktif')
-                            })
+                            updateStatusUser(user?.phoneNumber as string, false).then(() => {})
+                            return firestore()
+                                .collection('chats')
+                                .onSnapshot(querySnapshot => {
+                                    if (querySnapshot.empty) {
+                                        // todo
+                                    } else {
+                                        querySnapshot.docChanges().forEach(change => {
+                                            const id = change.doc.id
+                                            if (change.type === 'added') {
+                                                subscribeForNotification(id, user?.phoneNumber as string).then(() => {})
+                                            }
+                                            if (change.type === 'modified') {
+                                                subscribeForNotification(id, user?.phoneNumber as string).then(() => {})
+                                            }
+                                        })
+                                    }
+                                })
                         }
                     }
                 }
@@ -109,18 +183,6 @@ const Main = () => {
             subscription.remove()
         }
     }, [user?.phoneNumber, user, getValue])
-
-    useEffect(() => {
-        const subscription = AppState.addEventListener('change', nextAppState => {
-            if (appState.current.match(/inactive|background/) && nextAppState === 'active') {
-            } else {
-                appState.current = nextAppState
-            }
-        })
-        return () => {
-            subscription.remove()
-        }
-    }, [])
 
     if (loading) {
         return Loading
@@ -209,6 +271,14 @@ const Main = () => {
                         transactionId: '',
                     }}
                     options={{ headerShown: false }}
+                />
+                <Stack.Screen
+                    name={'transaction_detail'}
+                    component={TransactionDetail}
+                    options={{ headerShown: false }}
+                    initialParams={{
+                        transaction: null,
+                    }}
                 />
             </Stack.Navigator>
         </NavigationContainer>

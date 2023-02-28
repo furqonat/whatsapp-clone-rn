@@ -170,14 +170,36 @@ const Transaction = () => {
                     onPress={handleOnItemPress}
                 />
                 <BottomSheet
+                    style={{
+                        shadowColor: '#000',
+                        shadowOffset: {
+                            width: 0,
+                            height: 2,
+                        },
+                        shadowOpacity: 0.25,
+                        shadowRadius: 3.84,
+
+                        elevation: 5,
+                    }}
                     index={-1}
                     ref={bsRefItem}
-                    enablePanDownToClose={true}
                     animateOnMount={true}
+                    enablePanDownToClose={true}
                     snapPoints={snapPoints}>
                     {trans && <TransactionItem transaction={trans} />}
                 </BottomSheet>
                 <BottomSheet
+                    style={{
+                        shadowColor: '#000',
+                        shadowOffset: {
+                            width: 0,
+                            height: 2,
+                        },
+                        shadowOpacity: 0.25,
+                        shadowRadius: 3.84,
+
+                        elevation: 5,
+                    }}
                     index={-1}
                     animateOnMount={true}
                     enablePanDownToClose={true}

@@ -44,7 +44,7 @@ const Chats = () => {
                 })
             })
             .catch(error => {
-                console.log(error)
+                alert(error.message)
             })
     }
 

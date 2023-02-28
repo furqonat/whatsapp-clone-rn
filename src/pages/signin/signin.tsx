@@ -49,6 +49,7 @@ const SignIn = () => {
                         bottomSheetRef.current?.collapse()
                     })
                     .catch(_error => {
+                        console.error(_error)
                         setLoading(false)
                         toast.show({
                             id: 'toast-id',

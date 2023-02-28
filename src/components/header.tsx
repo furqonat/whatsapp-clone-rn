@@ -11,6 +11,7 @@ type signInScreenProp = StackNavigationProp<RootStackParamList, 'signin' | 'chat
 
 type HeaderProps = {
     title?: string
+    extraHeader?: React.ReactNode
 }
 export const Header: React.FC<HeaderProps> = props => {
     const { title = 'Rekberin' } = props
@@ -29,7 +30,7 @@ export const Header: React.FC<HeaderProps> = props => {
                 })
             })
             .catch(error => {
-                console.log(error)
+                alert(error.message)
             })
     }
     return (
@@ -54,67 +55,73 @@ export const Header: React.FC<HeaderProps> = props => {
                 </Text>
             </View>
 
-            <View
-                style={{
-                    left: 3,
-                    justifyContent: 'center',
-                    flexDirection: 'row',
-                }}>
-                <IconButton
-                    icon='logout'
-                    color={Colors.white}
-                    size={23}
-                    onPress={() => setShowModal(true)}
-                />
-                <Modal
-                    isOpen={showModal}
-                    onClose={() => setShowModal(false)}
-                    _backdrop={{
-                        _dark: {
-                            bg: 'white',
-                        },
-                        bg: 'gray.700',
-                    }}>
-                    <Modal.Content
-                        alignItems={'center'}
-                        py={4}
-                        maxWidth='350'
-                        maxH='212'>
-                        <Image
-                            size={20}
-                            source={require('../assets/adaptive-icon.png')}
-                            alt='logo'
+            {props.extraHeader ? (
+                props.extraHeader
+            ) : (
+                <>
+                    <View
+                        style={{
+                            left: 3,
+                            justifyContent: 'center',
+                            flexDirection: 'row',
+                        }}>
+                        <IconButton
+                            icon='logout'
+                            color={Colors.white}
+                            size={23}
+                            onPress={() => setShowModal(true)}
                         />
-                        <Text style={{ fontSize: 18, marginBottom: 15 }}>Yakin mau keluar?</Text>
-                        <Stack
-                            space={30}
-                            direction={'row'}>
-                            <Button
-                                onPress={() => {
-                                    setShowModal(false)
-                                }}>
-                                Cancel
-                            </Button>
-                            <Button
-                                variant='outline'
-                                colorScheme='secondary'
-                                onPress={logoutApp}>
-                                Yes
-                            </Button>
-                        </Stack>
-                    </Modal.Content>
-                </Modal>
-            </View>
-            <Dialog
-                dismissable={false}
-                visible={loading}>
-                <Dialog.Content>
-                    <ActivityIndicator
-                        size='large'
-                        color={Colors.blue500}
-                    />
-                </Dialog.Content>
-            </Dialog>
+                        <Modal
+                            isOpen={showModal}
+                            onClose={() => setShowModal(false)}
+                            _backdrop={{
+                                _dark: {
+                                    bg: 'white',
+                                },
+                                bg: 'gray.700',
+                            }}>
+                            <Modal.Content
+                                alignItems={'center'}
+                                py={4}
+                                maxWidth='350'
+                                maxH='212'>
+                                <Image
+                                    size={20}
+                                    source={require('../assets/adaptive-icon.png')}
+                                    alt='logo'
+                                />
+                                <Text style={{ fontSize: 18, marginBottom: 15 }}>Yakin mau keluar?</Text>
+                                <Stack
+                                    space={30}
+                                    direction={'row'}>
+                                    <Button
+                                        onPress={() => {
+                                            setShowModal(false)
+                                        }}>
+                                        Cancel
+                                    </Button>
+                                    <Button
+                                        variant='outline'
+                                        colorScheme='secondary'
+                                        onPress={logoutApp}>
+                                        Yes
+                                    </Button>
+                                </Stack>
+                            </Modal.Content>
+                        </Modal>
+                    </View>
+                    <Dialog
+                        dismissable={false}
+                        visible={loading}>
+                        <Dialog.Content>
+                            <ActivityIndicator
+                                size='large'
+                                color={Colors.blue500}
+                            />
+                        </Dialog.Content>
+                    </Dialog>
+                </>
+            )}
         </View>
     )
 }
