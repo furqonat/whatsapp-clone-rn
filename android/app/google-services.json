@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "1002742390465",
+    "project_id": "rekberindo-2e42c",
+    "storage_bucket": "rekberindo-2e42c.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1002742390465:android:204b1ec4037db0415dfe40",
+        "android_client_info": {
+          "package_name": "com.rekberindo.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1002742390465-lsb43h0857vshekb271chdlqhkgm3tis.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC4ygPgd44c5H_GvwbYdoHzXqRPywNF4Zo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1002742390465-lsb43h0857vshekb271chdlqhkgm3tis.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
