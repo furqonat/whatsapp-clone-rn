@@ -42,7 +42,7 @@
         "android.permission.SCHEDULE_EXACT_ALARM"
       ],
       "package": "com.rekberindo.app",
-      "versionCode": 6,
+      "versionCode": 9,
       "googleServicesFile": "./google-services.json"
     },
     "web": {

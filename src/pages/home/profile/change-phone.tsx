@@ -2,7 +2,6 @@ import { Ionicons } from '@expo/vector-icons'
 import { useNavigation } from '@react-navigation/native'
 import { NativeStackScreenProps } from '@react-navigation/native-stack'
 import { StackNavigationProp } from '@react-navigation/stack'
-import { FirebaseRecaptchaVerifierModal } from 'expo-firebase-recaptcha'
 import { IconButton } from 'native-base'
 import { RootStackParamList } from 'pages/screens'
 import { useRef, useState } from 'react'
@@ -42,7 +41,6 @@ const styles = StyleSheet.create({
 
 const ChangePhone = ({ route }: Props) => {
     const navigation = useNavigation<StackNavigationProp<RootStackParamList, 'tabbar'>>()
-    const recaptchaVerifier = useRef<any>(null)
     const [value, setValue] = useState('')
     const [loading, setLoading] = useState(false)
     const ref = useBlurOnFulfill({ value, cellCount: 6 })
@@ -124,7 +122,6 @@ const ChangePhone = ({ route }: Props) => {
                 <CodeField
                     ref={ref}
                     {...props}
-                    // editable={!loading}
                     value={value}
                     onChangeText={setValue}
                     cellCount={6}

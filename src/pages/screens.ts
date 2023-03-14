@@ -22,6 +22,9 @@ type RootStackParamList = {
     settings: undefined
     qr: undefined
     transaction: undefined
+    edit_transaction: {
+        transactionId: string | null
+    }
     new_transaction: {
         contact: IContact | null
     }

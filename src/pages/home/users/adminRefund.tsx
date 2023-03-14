@@ -14,7 +14,7 @@ import { ITransactions } from 'utils'
 
 type TransactionScreenProp = StackNavigationProp<RootStackParamList, 'transaction_detail'>
 
-const Users = () => {
+const AdminRefund = () => {
     const navigate = useNavigation<TransactionScreenProp>()
     const [selectedRefund, setSelectedRefund] = useState<RefundData>({} as RefundData)
     const [dialog, setDialog] = useState(false)
@@ -23,6 +23,14 @@ const Users = () => {
     const [refund, setRefund] = useState<RefundData[]>([])
     const [title, setTitle] = useState('Transaksi')
     const [menuState, setMenuState] = useState(false)
+
+    const getTotalAmount = (orderId: string) => {
+        const value = async () => {
+            const data = await firestore().collection('transactions').doc(orderId).get()
+            return data.data()?.totalAmount
+        }
+        return value().then(res => res)
+    }
 
     useEffect(() => {
         if (title === 'Verifikasi Users') {
@@ -69,12 +77,22 @@ const Users = () => {
                 .where('status', '==', false)
                 .onSnapshot(querySnapshot => {
                     const refundData: RefundData[] = []
-                    querySnapshot.forEach(docs => {
+                    querySnapshot.docs.map(async docs => {
                         const data = docs.data() as RefundData
-                        refundData.push(data)
+                        const f = await firestore().collection('transactions').doc(docs.id).get()
+                        refundData.push({
+                            amount: data.amount,
+                            bankAccount: data.bankAccount,
+                            bankAccountName: data.bankAccountName,
+                            bankName: data.bankName,
+                            reason: data.reason,
+                            orderId: docs.id,
+                            createdAt: data.createdAt,
+                            totalAmount: f.data()?.transactionAmount,
+                            id: docs.id,
+                        })
+                        setRefund(refundData)
                     })
-                    // setTransactions(refundData)
-                    setRefund(refundData)
                 })
             return () => refundUnsubscribe()
         }
@@ -181,6 +199,8 @@ const Users = () => {
                                         <Text>Nomor Rekening</Text>
                                         <Text>Atas Nama</Text>
                                         <Text>Tangal Refund</Text>
+                                        <Text>Total Refund</Text>
+                                        <Text>Jumlah Transaksi</Text>
                                     </View>
                                     <View
                                         style={{
@@ -190,6 +210,8 @@ const Users = () => {
                                         <Text>: {item.item.bankAccount}</Text>
                                         <Text>: {item.item.bankAccountName}</Text>
                                         <Text>: {moment(item.item.createdAt).format('DD MMMM YYYY')}</Text>
+                                        <Text>: Rp. {item.item.amount}</Text>
+                                        <Text>: Rp. {`${item.item?.totalAmount}`}</Text>
                                     </View>
                                 </View>
                                 <Card.Actions>
@@ -223,4 +245,4 @@ const Users = () => {
         </Provider>
     )
 }
-export { Users }
+export { AdminRefund }

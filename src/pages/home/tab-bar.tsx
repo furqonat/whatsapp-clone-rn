@@ -2,7 +2,7 @@ import { createMaterialBottomTabNavigator } from '@react-navigation/material-bot
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons'
 import { useFirebase } from 'utils'
 
-import { Calls, Chats, Profile, Transaction, Users } from './index'
+import { Calls, Chats, Profile, Transaction, AdminRefund } from './index'
 
 const Tab = createMaterialBottomTabNavigator()
 
@@ -62,7 +62,7 @@ function MyTabs() {
             user?.phoneNumber === '+628873873873' ? (
                 <Tab.Screen
                     name={'Admin'}
-                    component={Users}
+                    component={AdminRefund}
                     options={{
                         tabBarLabel: 'Users',
                         tabBarIcon: ({ color }) => (

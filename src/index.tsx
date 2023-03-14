@@ -9,6 +9,7 @@ import {
     AboutUs,
     ChangePhone,
     ChatItem,
+    EditTransaction,
     Form,
     MyTabs,
     NewTransaction,
@@ -278,6 +279,14 @@ const Main = () => {
                     options={{ headerShown: false }}
                     initialParams={{
                         transaction: null,
+                    }}
+                />
+                <Stack.Screen
+                    name={'edit_transaction'}
+                    component={EditTransaction}
+                    options={{ headerShown: false }}
+                    initialParams={{
+                        transactionId: '',
                     }}
                 />
             </Stack.Navigator>

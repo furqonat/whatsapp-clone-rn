@@ -66,12 +66,16 @@ const Item = (props: {
                 return 'Kadaluarsa'
             case 'done':
                 return 'Di proses Admin'
+            case 'request-refund':
+                return 'Permintaan Refund'
             case 'refund':
                 return 'Refund'
             case 'finish':
                 return 'Transaksi sukses'
             case 'reject':
                 return 'Transaksi ditolak'
+            case 'cancel':
+                return 'Transaksi dibatalkan'
             case 'refund-accepted':
                 return 'Refund diterima'
             default:
@@ -93,10 +97,14 @@ const Item = (props: {
                 return 'red.400'
             case 'finish':
                 return 'green.400'
+            case 'request-refund':
+                return 'yellow.500'
             case 'reject':
                 return 'red.400'
             case 'refund-accepted':
                 return 'green.400'
+            case 'cancel':
+                return 'red.400'
             default:
                 return 'blue.400'
         }
@@ -108,7 +116,6 @@ const Item = (props: {
                 onPress={() => {
                     props.onPress && props.onPress(props.transaction)
                 }}>
-                {}
                 <Box
                     display={'flex'}
                     flexDirection={'row'}

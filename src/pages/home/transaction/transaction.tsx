@@ -85,6 +85,7 @@ const Transaction = () => {
     }
 
     const handleOnItemPress = (item: ITransactions) => {
+        setTrans(null)
         bsRef.current?.close()
         bsRefItem.current?.expand()
         setTrans(item)

@@ -34,7 +34,6 @@ const PublicProfile = () => {
         uid: user?.uid,
     })
 
-    const [email, setEmail] = useState<string | null | undefined>('')
     const [displayName, setDisplayName] = useState<string | null | undefined>('')
     const [phoneNumber, setPhoneNumber] = useState<string>('')
 
@@ -42,37 +41,11 @@ const PublicProfile = () => {
 
     useEffect(() => {
         setDisplayName(userInfo?.displayName)
-        setEmail(userInfo?.email)
         setPhoneNumber(userInfo?.phoneNumber || '')
     }, [userInfo?.displayName, userInfo?.email])
 
     const handleSave = () => {
         setLoading(true)
-        /*const userRef = query(collection(db, 'users'), where('uid', '==', `${user?.uid}`))
-        onSnapshot(userRef, querySnapshot => {
-            if (querySnapshot.empty) {
-                toast.show({
-                    title: 'No matching User',
-                })
-                setLoading(false)
-                return
-            } else {
-                querySnapshot.forEach(doc => {
-                    updateDoc(doc.ref, {
-                        displayName: displayName,
-                        email: email,
-                    }).then(() => {
-                        const ph = phone(phoneNumber, {
-                            country: 'ID',
-                        })
-                        setLoading(false)
-                        navigation.navigate('change_phone', {
-                            new_phone: ph.phoneNumber || phoneNumber,
-                        })
-                    })
-                })
-            }
-        })*/
         if (user?.phoneNumber) {
             firestore()
                 .collection('users')
@@ -90,7 +63,6 @@ const PublicProfile = () => {
                             doc.ref
                                 .update({
                                     displayName,
-                                    email,
                                 })
                                 .then(() => {
                                     const ph = phone(phoneNumber, {
@@ -232,12 +204,6 @@ const PublicProfile = () => {
                         placeholder={'Masukan Nama anda'}
                         onChangeText={(text: any) => setDisplayName(text)}
                         value={displayName}
-                    />
-                    <InputPrimary
-                        title={'Email'}
-                        value={email}
-                        onChangeText={(text: any) => setEmail(text)}
-                        placeholder={'Masukan Email Anda'}
                     />
                     <InputPrimary
                         keyboardType='numeric'

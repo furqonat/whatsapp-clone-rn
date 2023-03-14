@@ -17,9 +17,7 @@ const QrCamera = () => {
             setHasPermission(status === 'granted')
         }
 
-        getBarCodeScannerPermissions().then(r => {
-            console.log('r', r)
-        })
+        getBarCodeScannerPermissions().then(() => { })
     }, [])
 
     const handleBarCodeScanned = (data: any) => {
@@ -35,7 +33,7 @@ const QrCamera = () => {
             .then(() => {
                 setScanned(true)
             })
-            .catch(() => {})
+            .catch(() => { })
     }
 
     if (hasPermission === null) {

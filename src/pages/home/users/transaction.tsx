@@ -11,6 +11,7 @@ import { Button, Card, Dialog, Paragraph, Text } from 'react-native-paper'
 
 type Props = NativeStackScreenProps<RootStackParamList, 'transaction_detail', 'Stack'>
 type BankInfo = Omit<RefundData, 'id' | 'reason' | 'createdAt'>
+
 const Transaction = ({ route }: Props) => {
     const navigate = useNavigation()
     const [dialog, setDialog] = useState(false)
@@ -41,14 +42,6 @@ const Transaction = ({ route }: Props) => {
                                         }
                                     })
                                 })
-                                /*getDoc(ref).then((doc) => {
-                                    if (doc.exists()) {
-                                        const data = doc.data() as BankInfo
-                                        setBankInfo(data)
-                                    } else {
-                                        setBankInfo(null)
-                                    }
-                                })*/
                             })
                         }
                     })
@@ -63,7 +56,6 @@ const Transaction = ({ route }: Props) => {
                             setSender(null)
                         } else {
                             querySnapshot.forEach(docs => {
-                                // const ref = doc(db, 'users', docs.id, 'verification', item.receiverInfo.phoneNumber)
                                 docs.ref.collection('verification').onSnapshot(snap => {
                                     snap.forEach(doc => {
                                         if (doc.exists) {
@@ -74,14 +66,6 @@ const Transaction = ({ route }: Props) => {
                                         }
                                     })
                                 })
-                                /*getDoc(ref).then((doc) => {
-                                    if (doc.exists()) {
-                                        const data = doc.data() as BankInfo
-                                        setBankInfo(data)
-                                    } else {
-                                        setBankInfo(null)
-                                    }
-                                })*/
                             })
                         }
                     })

@@ -28,7 +28,11 @@ const useTransactions = (props: { userId?: string | undefined }) => {
                 .onSnapshot(querySnapshot => {
                     const value: ITransactions[] = []
                     querySnapshot.docs.forEach(doc => {
-                        if (doc.data().id.includes(props?.userId)) {
+                        if (
+                            doc.data().id.includes(props?.userId) ||
+                            doc.data().receiverUid === props?.userId ||
+                            doc.data().senderUid === props?.userId
+                        ) {
                             value.push({ ...(doc.data() as ITransactions), id: doc.id })
                         }
                     })

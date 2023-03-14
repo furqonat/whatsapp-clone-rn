@@ -1,96 +1,64 @@
 import { Ionicons } from '@expo/vector-icons'
 import firestore from '@react-native-firebase/firestore'
+import { useNavigation } from '@react-navigation/native'
 import { NativeStackScreenProps } from '@react-navigation/native-stack'
-import { ButtonPrimary, InputPrimary } from 'components'
 import { IconButton } from 'native-base'
 import { RootStackParamList } from 'pages/screens'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { ScrollView, StatusBar, Text, View } from 'react-native'
+import { ActivityIndicator, Button, Dialog, TextInput } from 'react-native-paper'
 import { useFirebase } from 'utils'
 
 type Props = NativeStackScreenProps<RootStackParamList, 'refund'>
 
 const Refund = ({ route }: Props) => {
     const [reason, setReason] = useState('')
+    const [amount, setAmount] = useState('')
+    const [currentAmount, setCurrentAmount] = useState(0)
+    const [loading, setLoading] = useState(false)
+    const navigation = useNavigation()
 
     const { user } = useFirebase()
 
     const handleRefund = () => {
-        // const docRef = doc(db, 'transactions', route.params.transactionId)
-        // const refundRef = doc(db, 'refunds', route.params.transactionId)
-        // const userRef = query(collection(db, 'users'), where('phoneNumber', '==', user?.phoneNumber))
+        setLoading(true)
         firestore()
             .collection('transactions')
             .doc(route.params.transactionId)
             .update({
-                status: 'refund',
+                status: 'request-refund',
+                refund: {
+                    reason,
+                    createdAt: new Date().toISOString(),
+                    amount: Number(amount),
+                    requestBy: user?.phoneNumber,
+                },
             })
             .then(() => {
-                firestore()
-                    .collection('users')
-                    .where('phoneNumber', '==', user?.phoneNumber)
-                    .get()
-                    .then(querySnapshot => {
-                        if (querySnapshot.empty) {
-                            // return
-                        } else {
-                            querySnapshot.forEach(docData => {
-                                firestore()
-                                    .collection('users')
-                                    .doc(`${docData.id}`)
-                                    .collection('verification')
-                                    .doc(`${user?.phoneNumber}`)
-                                    .get()
-                                    .then(document => {
-                                        if (document.exists) {
-                                            const data = document.data()
-                                            firestore()
-                                                .collection('refunds')
-                                                .doc(route.params.transactionId)
-                                                .set({
-                                                    reason,
-                                                    createdAt: new Date().getTime(),
-                                                    bankName: data?.bankName,
-                                                    bankAccount: data?.bankAccount,
-                                                    bankAccountName: data?.bankAccountName,
-                                                    orderId: route.params.transactionId,
-                                                    status: false,
-                                                })
-                                                .then(() => {})
-                                        }
-                                    })
-                            })
-                        }
-                    })
+                setLoading(false)
+                navigation.goBack()
             })
-        /* updateDoc(docRef, {
-            status: 'refund',
-        }).then(() => {
-            getDocs(userRef).then(querySnapshot => {
-                if (querySnapshot.empty) {
-                    // return
-                } else {
-                    querySnapshot.forEach(docData => {
-                        const ref = doc(db, 'users', `${docData.id}`, 'verification', `${user?.phoneNumber}`)
-                        getDoc(ref).then(document => {
-                            if (document.exists()) {
-                                const data = document.data()
-                                setDoc(refundRef, {
-                                    reason,
-                                    createdAt: new Date().getTime(),
-                                    bankName: data?.bankName,
-                                    bankAccount: data?.bankAccount,
-                                    bankAccountName: data?.bankAccountName,
-                                    orderId: route.params.transactionId,
-                                    status: false,
-                                }).then(() => {})
-                            }
-                        })
-                    })
+            .catch(() => {
+                setLoading(false)
+            })
+    }
+
+    const handleBack = () => {
+        navigation.goBack()
+    }
+
+    useEffect(() => {
+        firestore()
+            .collection('transactions')
+            .doc(route.params.transactionId)
+            .get()
+            .then(document => {
+                if (document.exists) {
+                    const data = document.data()
+                    setCurrentAmount(data?.transactionAmount.toString())
                 }
             })
-        })*/
-    }
+    }, [])
 
     return (
         <View
@@ -120,7 +88,7 @@ const Refund = ({ route }: Props) => {
                         right: 10,
                     }}>
                     <IconButton
-                        // onPress={handleBack}
+                        onPress={handleBack}
                         borderRadius='full'
                         _icon={{
                             as: Ionicons,
@@ -142,36 +110,59 @@ const Refund = ({ route }: Props) => {
                 <View
                     style={{
                         width: '100%',
-                        marginBottom: 20,
+                        marginBottom: 10,
                     }}>
                     <View
                         style={{
                             display: 'flex',
                             width: '100%',
-                            alignItems: 'center',
-                            alignContent: 'center',
-                            marginTop: 20,
+                            flexDirection: 'column',
+                            marginTop: 10,
+                            padding: 5,
                         }}>
-                        <InputPrimary
+                        <Text>Jumlah refund maksimal Rp. {currentAmount}</Text>
+                        <TextInput
+                            mode={'outlined'}
+                            value={amount.toString()}
+                            onChangeText={text => {
+                                if (isNaN(parseInt(text, 10))) {
+                                    setAmount('')
+                                } else {
+                                    setAmount(text)
+                                }
+                            }}
+                            keyboardType={'numeric'}
+                            placeholder={'Masukan jumlah refund'}
+                        />
+                        <TextInput
+                            mode={'outlined'}
                             value={reason}
                             onChangeText={setReason}
-                            height={100}
                             multiline={true}
-                            textAlignVertical={'top'}
-                            title={'Alasan refund'}
+                            numberOfLines={5}
+                            style={{
+                                marginTop: 10,
+                            }}
                             placeholder={'Masukan alasan refund'}
                         />
 
-                        <ButtonPrimary
-                            // onPress={handleSave}
-                            onPress={handleRefund}
-                            title={'Selesai'}
-                            px={12}
-                            py={'35%'}
-                        />
+                        <Button
+                            style={{
+                                marginTop: 10,
+                            }}
+                            loading={loading}
+                            mode={'contained'}
+                            onPress={handleRefund}>
+                            Ajukan refund
+                        </Button>
                     </View>
                 </View>
             </ScrollView>
+            <Dialog visible={loading}>
+                <Dialog.Content>
+                    <ActivityIndicator />
+                </Dialog.Content>
+            </Dialog>
         </View>
     )
 }

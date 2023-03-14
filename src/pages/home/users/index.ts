@@ -1,4 +1,5 @@
-export { Users } from './users'
+export { AdminRefund } from './adminRefund'
+
 export interface VerificationAccount extends Omit<RefundData, 'id' | 'orderId' | 'reason' | 'createdAt'> {
     nik: string
     image: string
@@ -16,4 +17,6 @@ export interface RefundData {
     orderId: string
     reason: string
     createdAt: string
+    amount: number
+    totalAmount?: number
 }

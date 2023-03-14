@@ -2,8 +2,7 @@ import { Ionicons } from '@expo/vector-icons'
 import firestore from '@react-native-firebase/firestore'
 import { useNavigation } from '@react-navigation/native'
 import { NativeStackScreenProps } from '@react-navigation/native-stack'
-import axios from 'axios'
-import * as WebBrowser from 'expo-web-browser'
+import { StackNavigationProp } from '@react-navigation/stack'
 import { Button, IconButton, Input, Modal, Radio, Select, Stack, Text, VStack } from 'native-base'
 import { RootStackParamList } from 'pages/screens'
 import React, { useState } from 'react'
@@ -11,19 +10,20 @@ import { GestureResponderEvent } from 'react-native'
 import { IContact, TransactionObject, useFirebase } from 'utils'
 
 type Props = NativeStackScreenProps<RootStackParamList, 'new_transaction', 'Stack'>
-
+type NavigationStack = StackNavigationProp<RootStackParamList, 'tabbar'>
 const NewTransaction = (props: Props) => {
     const { contact } = props.route.params
 
     const { user } = useFirebase()
 
-    const navigation = useNavigation()
+    const navigation = useNavigation<NavigationStack>()
 
     const [title, setTitle] = useState('')
     const [amount, setAmount] = useState('')
     const [fee, setFee] = useState(0)
     const [type, setType] = useState('REKBER')
     const [status, setStatus] = useState('legal')
+    const [meAs, setMeAs] = useState('')
     const [trans, setTrans] = useState<TransactionObject | null>(null)
     const [alertDialog, setAlertDialog] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
@@ -49,11 +49,19 @@ const NewTransaction = (props: Props) => {
                         }
                         const transactions: TransactionObject = {
                             transactionName: title,
-                            transactionAmount: Number(event),
+                            transactionAmount: Number(event) + fees,
                             transactionFee: fees,
                             transactionType: type,
                             transactionStatus: status,
-                            receiverInfo: contact as IContact,
+                            receiverInfo:
+                                meAs === 'seller'
+                                    ? ({
+                                          displayName: user?.displayName,
+                                          email: user?.email,
+                                          phoneNumber: user?.phoneNumber,
+                                          uid: user?.uid,
+                                      } as IContact)
+                                    : (contact as IContact),
                         }
                         setTrans(transactions)
                         // props.onClick(transactions)
@@ -80,74 +88,40 @@ const NewTransaction = (props: Props) => {
     }
 
     const createTransaction = (transaction: TransactionObject) => {
-        // setOpenDialog(true)
         setIsLoading(true)
         const id = transaction.receiverInfo.uid + user?.uid + new Date().getTime()
         const orderId = `order-${new Date().getTime()}`
         const dbRef = firestore().collection('transactions').doc(orderId)
-
-        axios
-            .post(
-                `${process.env.SERVER_URL}api/v1/transactions/new`,
-                {
-                    customer_details: {
-                        first_name: transaction.receiverInfo.displayName,
-                        phone: transaction.receiverInfo.phoneNumber,
-                        email: transaction.receiverInfo.email,
-                    },
-                    amount: transaction.transactionAmount + transaction.transactionFee,
-                    order_id: orderId,
-                },
-                {
-                    headers: {
-                        Accept: 'application/json',
-                        'Content-Type': 'application/json',
-                    },
-                }
-            )
-            .then(response => {
-                if (response.status === 200) {
-                    dbRef
-                        .set({
-                            id,
-                            senderPhoneNumber: user?.phoneNumber,
-                            senderUid: user?.uid,
-                            senderEmail: user?.email ?? '',
-                            receiverPhoneNumber: transaction.receiverInfo.phoneNumber,
-                            receiverUid: transaction.receiverInfo.uid,
-                            receiverEmail: transaction.receiverInfo.email,
-                            ...transaction,
-                            createdAt: new Date().toISOString(),
-                            status: 'pending',
-                            transactionToken: response.data.transactionToken,
-                        })
-                        .then(() => {
-                            WebBrowser.openBrowserAsync(response.data.transactionToken.redirect_url).then(() => {
-                                navigation.goBack()
-                            })
-                            // openNewWindow(response.data.transactionToken.redirect_url)
-                            // setOpenDialog(false)
-                            // onDone && onDone(true)
-                            setAlertDialog(false)
-                            setIsLoading(false)
-                        })
-                        .catch(() => {
-                            setIsLoading(false)
-                            // setOpenDialog(false)
-                            // onDone && onDone(false)
-                            alert('Gagal membuat transaksi, silahkan coba lagi')
-                        })
-                }
+        dbRef
+            .set({
+                id,
+                senderPhoneNumber: meAs !== 'seller' ? user?.phoneNumber : contact?.phoneNumber,
+                senderUid: meAs !== 'seller' ? user?.uid : contact?.uid,
+                senderEmail: meAs !== 'seller' ? user?.email : contact?.email,
+                receiverPhoneNumber: meAs !== 'seller' ? contact?.phoneNumber : user?.phoneNumber,
+                receiverUid: meAs !== 'seller' ? contact?.uid : user?.uid,
+                receiverEmail: meAs !== 'seller' ? contact?.email : user?.email,
+                ...transaction,
+                createdAt: new Date().toISOString(),
+                status: 'pending',
+                seller: meAs === 'seller' ? user?.phoneNumber : transaction.receiverInfo.phoneNumber,
+                // transactionToken: response.data.transactionToken,
+            })
+            .then(() => {
+                setAlertDialog(false)
+                setIsLoading(false)
+                navigation.navigate('tabbar')
             })
             .catch(() => {
-                alert('Gagal membuat transaksi, silahkan hubungi admin')
+                setIsLoading(false)
                 // setOpenDialog(false)
                 // onDone && onDone(false)
+                alert('Gagal membuat transaksi, silahkan coba lagi')
             })
     }
 
     const handleOpenModal = () => {
-        if (trans && title !== '' && amount !== '') {
+        if (trans && title !== '' && amount !== '' && meAs !== '') {
             setAlertDialog(true)
         } else {
             alert('Silahkan isi semua data')
@@ -211,6 +185,29 @@ const NewTransaction = (props: Props) => {
                         size={'small'}
                         value={`${contact?.phoneNumber}`}
                     />
+                </Stack>
+                <Stack
+                    space={2}
+                    justifyContent={'space-between'}
+                    alignItems={'center'}
+                    direction={'column'}>
+                    <Text> Saya Sebagai {meAs === 'seller' ? 'Penjual' : 'Pembeli'} </Text>
+                    <Radio.Group
+                        onChange={nextValue => setMeAs(nextValue)}
+                        defaultValue={status}
+                        name={`Saya Sebagai`}>
+                        <Stack
+                            space={2}
+                            alignItems={'stretch'}
+                            direction={'row'}>
+                            <Radio value={'seller'}>
+                                <Text variant={'sm'}>Penjual</Text>
+                            </Radio>
+                            <Radio value={'buyer'}>
+                                <Text variant={'sm'}>Pembeli</Text>
+                            </Radio>
+                        </Stack>
+                    </Radio.Group>
                 </Stack>
                 <Text variant={'sm'}>Tipe transaksi</Text>
                 <Stack
