@@ -11,6 +11,7 @@ interface TransactionObject {
 
 interface ITransactions extends TransactionObject {
     id: string
+    link_id: string | number
     senderUid: string
     senderPhoneNumber: string
     receiverUid: string

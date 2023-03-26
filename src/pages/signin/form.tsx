@@ -9,6 +9,8 @@ import { Image } from 'react-native'
 import { Button, IconButton } from 'react-native-paper'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useFirebase, USER_KEY } from 'utils'
+import { useAppDispatch } from 'utils/context'
+import { setUser } from 'utils/context/users'
 
 import { RootStackParamList } from '../screens'
 
@@ -20,6 +22,7 @@ function Form() {
 
     const { user, setValue } = useFirebase()
     const [displayName, setDisplayName] = useState(user?.displayName || '')
+    const dispatch = useAppDispatch()
     const { uploadAvatar, avatar } = useAvatar({
         uid: user?.uid,
     })
@@ -53,6 +56,13 @@ function Form() {
                                             ...user,
                                         })
                                     ).then(() => {
+                                        dispatch(
+                                            setUser(
+                                                JSON.stringify({
+                                                    ...user,
+                                                })
+                                            )
+                                        )
                                         navigation.navigate('tabbar')
                                     })
                                 })

@@ -1,7 +1,6 @@
 import firestore from '@react-native-firebase/firestore'
 import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
-import axios from 'axios'
 import * as Clipboard from 'expo-clipboard'
 import * as WebBrowser from 'expo-web-browser'
 import moment from 'moment'
@@ -23,7 +22,6 @@ const TransactionItem = (props: { transaction: ITransactions }) => {
         transactionStatus,
         id,
         payment_type,
-        receiverInfo,
         transactionToken,
         refund = null,
         seller,
@@ -46,57 +44,6 @@ const TransactionItem = (props: { transaction: ITransactions }) => {
             WebBrowser.openBrowserAsync(transactionToken.redirect_url).then(() => {
                 navigation.goBack()
             })
-        } else {
-            axios
-                .post(
-                    // @ts-ignore
-                    `${process.env.SERVER_URL}api/v1/transactions/new`,
-                    {
-                        customer_details: {
-                            first_name: receiverInfo.displayName,
-                            phone: receiverInfo.phoneNumber,
-                            email: receiverInfo.email,
-                        },
-                        amount: transactionAmount,
-                        order_id: id,
-                    },
-                    {
-                        headers: {
-                            Accept: 'application/json',
-                            'Content-Type': 'application/json',
-                        },
-                    }
-                )
-                .then(response => {
-                    if (response.status === 200) {
-                        setLoadingTransaction(false)
-                        firestore()
-                            .collection('transactions')
-                            .doc(id)
-                            .update({
-                                transactionToken: response.data.transactionToken,
-                            })
-                            .then(() => {
-                                WebBrowser.openBrowserAsync(response.data.transactionToken.redirect_url).then(() => {
-                                    navigation.goBack()
-                                })
-                            })
-                            .catch(err => {
-                                console.log(err)
-                                alert('Gagal membuat transaksi, silahkan hubungi admin')
-                                // setOpenDialog(false)
-                                // onDone && onDone(false)
-                            })
-                    }
-                })
-                .catch(err => {
-                    console.log(err.message)
-                    setLoadingTransaction(false)
-                    alert('Gagal membuat transaksi, silahkan hubungi admin')
-                    // setOpenDialog(false)
-                    // onDone && onDone(false)
-                })
-            // WebBrowser.openBrowserAsync(url).then(_ => {})
         }
     }
     const editTransaction = () => {
@@ -333,6 +280,7 @@ const TransactionItem = (props: { transaction: ITransactions }) => {
                             {status !== 'ACTIVE' &&
                             status !== 'request-refund' &&
                             status !== 'settlement' &&
+                            status !== 'refund-accepted' &&
                             status !== 'done' &&
                             status !== 'refund' &&
                             status !== 'reject' &&
@@ -397,9 +345,7 @@ const TransactionItem = (props: { transaction: ITransactions }) => {
                                             </Button>
                                         ) : null}
                                         {status === 'settlement' ? (
-                                            <Button onPress={handleConfirm}>
-                                                <Text color={'white'}>Konfirmasi</Text>
-                                            </Button>
+                                            <Button onPress={handleConfirm}>Konfirmasi</Button>
                                         ) : null}
                                         {status === 'request-refund' &&
                                         refund &&

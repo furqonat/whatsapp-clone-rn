@@ -139,4 +139,4 @@ const ChatListItem = (props: { item: IChatList }) => {
     )
 }
 
-export { ChatList }
+export { ChatList, ChatListItem }

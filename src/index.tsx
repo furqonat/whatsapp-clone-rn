@@ -1,12 +1,13 @@
 import auth from '@react-native-firebase/auth'
 import firestore from '@react-native-firebase/firestore'
-import { NavigationContainer } from '@react-navigation/native'
-import { createStackNavigator } from '@react-navigation/stack'
+import { useNavigation } from '@react-navigation/native'
+import { createStackNavigator, StackNavigationProp } from '@react-navigation/stack'
 import * as Notifications from 'expo-notifications'
 import moment from 'moment'
 import { Image, VStack } from 'native-base'
 import {
     AboutUs,
+    AdminRefund,
     ChangePhone,
     ChatItem,
     EditTransaction,
@@ -16,6 +17,7 @@ import {
     Otp,
     Privacy,
     PrivateProfile,
+    Profile,
     PublicProfile,
     QrCamera,
     Refund,
@@ -24,8 +26,11 @@ import {
 import { Transaction as TransactionDetail } from 'pages/home/users/transaction'
 import { RootStackParamList } from 'pages/screens'
 import { useEffect, useRef, useState } from 'react'
-import { AppState } from 'react-native'
+import { AppState, View } from 'react-native'
+import { IconButton, Menu } from 'react-native-paper'
 import { useFirebase, USER_KEY } from 'utils'
+import { useAppDispatch, useAppSelector } from 'utils/context'
+import { setUser } from 'utils/context/users'
 
 Notifications.setNotificationHandler({
     handleNotification: async () => ({
@@ -118,35 +123,40 @@ const updateStatusUser = (phoneNumber: string, status: boolean) => {
             })
     })
 }
+type RefStack = StackNavigationProp<RootStackParamList>
 
 const Main = () => {
+    const navigation = useNavigation<RefStack>()
     const appState = useRef(AppState.currentState)
-    const [indexScreen, setIndexScreen] = useState<'signin' | 'tabbar'>('signin')
+    const [indexScreen, setIndexScreen] = useState('signin')
+    const [menuVisible, setMenuVisible] = useState(false)
 
     const [loading, setLoading] = useState(true)
     const { user, getValue } = useFirebase()
-
+    const screen = useAppSelector(state => state.header.name)
+    const currentUser = useAppSelector(state => state.users.currentUser)
+    const dispatch = useAppDispatch()
     useEffect(() => {
         setLoading(true)
-        getValue(USER_KEY).then(user => {
-            if (user && user.length > 20) {
-                setIndexScreen('tabbar')
+        getValue(USER_KEY)
+            .then(user => {
+                dispatch(setUser(user))
                 setLoading(false)
-            } else {
-                setIndexScreen('signin')
+            })
+            .catch(() => {
                 setLoading(false)
-                if (auth().currentUser) {
-                    auth()
-                        .signOut()
-                        .then(() => {
-                            if (auth()?.currentUser) {
-                                auth()?.currentUser?.delete()
-                            }
-                        })
-                }
-            }
-        })
+            })
     }, [auth])
+
+    useEffect(() => {
+        if (currentUser === 'no') {
+            setIndexScreen('signin')
+        } else {
+            setIndexScreen('tabbar')
+        }
+    }, [currentUser])
+
+    console.log(indexScreen, currentUser)
 
     useEffect(() => {
         const subscription = AppState.addEventListener('change', nextAppState => {
@@ -188,109 +198,189 @@ const Main = () => {
     if (loading) {
         return Loading
     }
-
+    const handleQr = () => {
+        navigation.navigate('qr')
+    }
+    const handleToProfile = () => {
+        navigation.navigate('profile')
+    }
     return (
-        <NavigationContainer>
-            <Stack.Navigator>
-                <Stack.Screen
-                    options={{ headerShown: false }}
-                    name={indexScreen === 'signin' ? 'signin' : 'tabbar'}
-                    component={indexScreen === 'signin' ? SignIn : MyTabs}
-                />
-                <Stack.Screen
-                    options={{ headerShown: false }}
-                    name={indexScreen === 'tabbar' ? 'signin' : 'tabbar'}
-                    component={indexScreen === 'tabbar' ? SignIn : MyTabs}
-                />
-                <Stack.Screen
-                    options={{ headerShown: false }}
-                    name='qr'
-                    component={QrCamera}
-                />
-                <Stack.Screen
-                    options={{ headerShown: false }}
-                    name='otp'
-                    initialParams={{
-                        provider: 'phone',
-                    }}
-                    component={Otp}
-                />
-                <Stack.Screen
-                    options={{ headerShown: false }}
-                    name='form'
-                    component={Form}
-                />
-                <Stack.Screen
-                    options={{ headerShown: false }}
-                    name='chatItem'
-                    initialParams={{
-                        chatId: null,
-                        phoneNumber: null,
-                    }}
-                    component={ChatItem}
-                />
-                <Stack.Screen
-                    options={{ headerShown: false }}
-                    name='new_transaction'
-                    initialParams={{
-                        contact: null,
-                    }}
-                    component={NewTransaction}
-                />
-                <Stack.Screen
-                    options={{ headerShown: false }}
-                    name='profile_diri'
-                    component={PrivateProfile}
-                />
-                <Stack.Screen
-                    options={{ headerShown: false }}
-                    name='profile_publik'
-                    component={PublicProfile}
-                />
-                <Stack.Screen
-                    options={{ headerShown: false }}
-                    name='tentang_kami'
-                    component={AboutUs}
-                />
-                <Stack.Screen
-                    options={{ headerShown: false }}
-                    name='privasi'
-                    component={Privacy}
-                />
-                <Stack.Screen
-                    name={'change_phone'}
-                    component={ChangePhone}
-                    initialParams={{
-                        new_phone: '',
-                    }}
-                    options={{ headerShown: false }}
-                />
-                <Stack.Screen
-                    name={'refund'}
-                    component={Refund}
-                    initialParams={{
-                        transactionId: '',
-                    }}
-                    options={{ headerShown: false }}
-                />
-                <Stack.Screen
-                    name={'transaction_detail'}
-                    component={TransactionDetail}
-                    options={{ headerShown: false }}
-                    initialParams={{
-                        transaction: null,
-                    }}
-                />
-                <Stack.Screen
-                    name={'edit_transaction'}
-                    component={EditTransaction}
-                    options={{ headerShown: false }}
-                    initialParams={{
-                        transactionId: '',
-                    }}
-                />
-            </Stack.Navigator>
-        </NavigationContainer>
+        <Stack.Navigator>
+            <Stack.Screen
+                options={{
+                    headerShown: indexScreen === 'tabbar',
+                    title: 'Rekberin',
+                    headerStyle: {
+                        backgroundColor: '#5b21b6',
+                        shadowColor: '#5b21b6',
+                    },
+                    headerTintColor: '#fff',
+                    headerTitleStyle: {
+                        fontWeight: 'bold',
+                    },
+                    headerRight: () => (
+                        <View
+                            style={{
+                                display: 'flex',
+                                flexDirection: 'row',
+                            }}>
+                            {screen === 'Pesan' && (
+                                <IconButton
+                                    onPress={handleQr}
+                                    icon={'camera-outline'}
+                                    color={'#fff'}
+                                />
+                            )}
+                            <Menu
+                                onDismiss={() => {
+                                    setMenuVisible(false)
+                                }}
+                                visible={menuVisible}
+                                anchor={
+                                    <IconButton
+                                        onPress={() => {
+                                            setMenuVisible(true)
+                                        }}
+                                        icon={'dots-vertical'}
+                                        color={'#fff'}
+                                    />
+                                }>
+                                {user?.phoneNumber === '+6281366056646' ||
+                                user?.phoneNumber === '+6282225849504' ||
+                                user?.phoneNumber === '+6285283564636' ||
+                                user?.phoneNumber === '+6285804657317' ||
+                                user?.phoneNumber === '+628873873873' ? (
+                                    <Menu.Item
+                                        onPress={() => {
+                                            setMenuVisible(false)
+                                            navigation.navigate('transaction')
+                                        }}
+                                        title={'Admin'}
+                                    />
+                                ) : null}
+                                <Menu.Item
+                                    onPress={() => {
+                                        setMenuVisible(false)
+                                        handleToProfile()
+                                    }}
+                                    title='Profile'
+                                />
+                            </Menu>
+                        </View>
+                    ),
+                }}
+                name={indexScreen === 'signin' ? 'signin' : 'tabbar'}
+                component={indexScreen === 'signin' ? SignIn : MyTabs}
+            />
+            <Stack.Screen
+                options={{
+                    headerShown: indexScreen === 'tabbar',
+                    headerTitle: 'Rekberin',
+                    headerBackgroundContainerStyle: {
+                        backgroundColor: '#5b21b6',
+                    },
+                }}
+                name={indexScreen === 'tabbar' ? 'signin' : 'tabbar'}
+                component={indexScreen === 'tabbar' ? SignIn : MyTabs}
+            />
+            <Stack.Screen
+                options={{ headerShown: false }}
+                name='qr'
+                component={QrCamera}
+            />
+            <Stack.Screen
+                options={{ headerShown: false }}
+                name='otp'
+                initialParams={{
+                    provider: 'phone',
+                }}
+                component={Otp}
+            />
+            <Stack.Screen
+                options={{ headerShown: false }}
+                name='form'
+                component={Form}
+            />
+            <Stack.Screen
+                options={{ headerShown: false }}
+                name='chatItem'
+                initialParams={{
+                    chatId: null,
+                    phoneNumber: null,
+                }}
+                component={ChatItem}
+            />
+            <Stack.Screen
+                options={{ headerShown: false }}
+                name='new_transaction'
+                initialParams={{
+                    contact: null,
+                }}
+                component={NewTransaction}
+            />
+            <Stack.Screen
+                options={{ headerShown: false }}
+                name='profile_diri'
+                component={PrivateProfile}
+            />
+            <Stack.Screen
+                options={{ headerShown: false }}
+                name='profile_publik'
+                component={PublicProfile}
+            />
+            <Stack.Screen
+                options={{ headerShown: false }}
+                name='tentang_kami'
+                component={AboutUs}
+            />
+            <Stack.Screen
+                options={{ headerShown: false }}
+                name='privasi'
+                component={Privacy}
+            />
+            <Stack.Screen
+                name={'change_phone'}
+                component={ChangePhone}
+                initialParams={{
+                    new_phone: '',
+                }}
+                options={{ headerShown: false }}
+            />
+            <Stack.Screen
+                name={'refund'}
+                component={Refund}
+                initialParams={{
+                    transactionId: '',
+                }}
+                options={{ headerShown: false }}
+            />
+            <Stack.Screen
+                name={'transaction_detail'}
+                component={TransactionDetail}
+                options={{ headerShown: false }}
+                initialParams={{
+                    transaction: null,
+                }}
+            />
+            <Stack.Screen
+                name={'edit_transaction'}
+                component={EditTransaction}
+                options={{ headerShown: false }}
+                initialParams={{
+                    transactionId: '',
+                }}
+            />
+            <Stack.Screen
+                name={'profile'}
+                component={Profile}
+                options={{ headerShown: false }}
+            />
+            <Stack.Screen
+                name={'transaction'}
+                component={AdminRefund}
+                options={{ headerShown: false }}
+            />
+        </Stack.Navigator>
     )
 }
 

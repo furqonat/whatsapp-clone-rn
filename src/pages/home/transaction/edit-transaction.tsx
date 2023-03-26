@@ -2,6 +2,7 @@ import firestore from '@react-native-firebase/firestore'
 import { useNavigation } from '@react-navigation/native'
 import { NativeStackScreenProps } from '@react-navigation/native-stack'
 import { Header } from 'components'
+import { Radio, Stack, Text } from 'native-base'
 import { RootStackParamList } from 'pages/screens'
 import { useEffect, useState } from 'react'
 import { StatusBar, View } from 'react-native'
@@ -16,7 +17,9 @@ const EditTransaction = ({ route }: Props) => {
     const [loading, setLoading] = useState(false)
     const [transactionName, setTransactionName] = useState('')
     const [transactionAmount, setTransactionAmount] = useState('')
+    const [linkId, setLinkId] = useState<string | number>('')
     const [fee, setFee] = useState(0)
+    const [status, setStatus] = useState('')
 
     useEffect(() => {
         if (transactionId) {
@@ -28,8 +31,11 @@ const EditTransaction = ({ route }: Props) => {
                     if (document.exists) {
                         const data = document.data() as ITransactions
                         if (data) {
-                            setTransactionAmount(data.transactionAmount.toString())
+                            setTransactionAmount((data.transactionAmount - data.transactionFee).toString())
                             setTransactionName(data.transactionName)
+                            setLinkId(data.link_id)
+                            setStatus(data.transactionStatus)
+                            setFee(data.transactionFee)
                         }
                     }
                 })
@@ -77,6 +83,7 @@ const EditTransaction = ({ route }: Props) => {
                     transactionName,
                     transactionAmount: Number(transactionAmount) + fee,
                     transactionFee: fee,
+                    transactionStatus: status,
                 })
                 .then(() => {
                     setLoading(false)
@@ -106,6 +113,27 @@ const EditTransaction = ({ route }: Props) => {
                     onChangeText={text => setTransactionName(text)}
                     placeholder={'Nama Transaksi'}
                 />
+                <Stack
+                    my={'5'}
+                    alignItems={'center'}
+                    alignContent={'center'}>
+                    <Radio.Group
+                        onChange={nextValue => setStatus(nextValue)}
+                        value={status}
+                        name={'Jenis Transaksi'}>
+                        <Stack
+                            space={2}
+                            alignItems={'stretch'}
+                            direction={'row'}>
+                            <Radio value={'legal'}>
+                                <Text variant={'sm'}>Legal</Text>
+                            </Radio>
+                            <Radio value={'illegal'}>
+                                <Text variant={'sm'}>Illegal</Text>
+                            </Radio>
+                        </Stack>
+                    </Radio.Group>
+                </Stack>
                 <TextInput
                     style={{
                         marginTop: 10,

@@ -5,13 +5,20 @@ import { HStack, Icon, Image, Text, VStack } from 'native-base'
 import { RootStackParamList } from 'pages/screens'
 import React, { useEffect, useState } from 'react'
 import { TouchableOpacity } from 'react-native-gesture-handler'
+import { ActivityIndicator, Button, Dialog } from 'react-native-paper'
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons'
-import { useFirebase } from 'utils'
+import { USER_KEY, useFirebase } from 'utils'
+import { useAppDispatch } from 'utils/context'
+import { setUser } from 'utils/context/users'
 
 type RefStack = StackNavigationProp<RootStackParamList, 'profile_publik' | 'tentang_kami' | 'profile_diri' | 'privasi'>
 
 const Profile = () => {
     const navigation = useNavigation<RefStack>()
+    const { setValue, logout } = useFirebase()
+    const [loading, setLoading] = useState(false)
+    const [dialog, setDialog] = useState(false)
+    const dispatch = useAppDispatch()
 
     const handlePublik = () => {
         navigation.navigate('profile_publik')
@@ -29,6 +36,23 @@ const Profile = () => {
         navigation.navigate('privasi')
     }
 
+    const handleLogout = () => {
+        setLoading(true)
+        setDialog(false)
+        setValue(USER_KEY, JSON.stringify('no'))
+            .then(_ => {
+                logout().then(() => {
+                    dispatch(setUser('no'))
+                    navigation.navigate('signin')
+                    setLoading(false)
+                })
+            })
+            .catch(error => {
+                alert(error.message)
+                setLoading(false)
+            })
+    }
+
     const { user } = useFirebase()
 
     const { avatar } = useAvatar({
@@ -44,7 +68,7 @@ const Profile = () => {
     }, [user])
 
     return (
-        <VStack>
+        <VStack h={'100%'}>
             <HStack
                 background={'violet.800'}
                 maxHeight={'200px'}>
@@ -139,7 +163,39 @@ const Profile = () => {
                         <Text fontWeight={'bold'}>Privasi</Text>
                     </HStack>
                 </TouchableOpacity>
+                <Text
+                    fontWeight={'semibold'}
+                    fontSize={'20px'}>
+                    Lainnya
+                </Text>
+                <TouchableOpacity onPress={() => setDialog(true)}>
+                    <HStack
+                        alignItems={'center'}
+                        space={2}>
+                        <Icon
+                            as={<MaterialCommunityIcons name='exit-to-app' />}
+                            size={'2xl'}
+                            name={'person'}
+                        />
+
+                        <Text fontWeight={'bold'}>Keluar</Text>
+                    </HStack>
+                </TouchableOpacity>
             </VStack>
+            <Dialog visible={dialog}>
+                <Dialog.Title>
+                    <Text>Apakah kamu yakin ingin keluar dari aplikasi</Text>
+                </Dialog.Title>
+                <Dialog.Actions>
+                    <Button onPress={handleLogout}>Ok</Button>
+                    <Button onPress={() => setDialog(false)}>Batal</Button>
+                </Dialog.Actions>
+            </Dialog>
+            <Dialog visible={loading}>
+                <Dialog.Content>
+                    <ActivityIndicator />
+                </Dialog.Content>
+            </Dialog>
         </VStack>
     )
 }

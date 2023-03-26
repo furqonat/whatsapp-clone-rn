@@ -3,15 +3,15 @@ import firestore from '@react-native-firebase/firestore'
 import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { useChats, useContacts } from 'hooks'
-import { Button, Image, Input, Modal, Stack, StatusBar, Text, VStack } from 'native-base'
+import { FlatList, Input, VStack } from 'native-base'
 import { RootStackParamList } from 'pages/screens'
 import phone from 'phone'
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { ActivityIndicator, NativeSyntheticEvent, TextInputSubmitEditingEventData, View } from 'react-native'
-import { Colors, Dialog, IconButton } from 'react-native-paper'
+import { Colors, Dialog, FAB } from 'react-native-paper'
 import { IContact, useFirebase, USER_KEY } from 'utils'
 
-import { ChatList } from './chat-list'
+import { ChatList, ChatListItem } from './chat-list'
 import { ContactList } from './contact-list'
 
 type signInScreenProp = StackNavigationProp<RootStackParamList, 'signin' | 'chatItem' | 'qr'>
@@ -31,21 +31,10 @@ const Chats = () => {
     const [search, setSearch] = useState('')
     const [contactList, setContactList] = useState<IContact[]>([])
 
-    const snapPoints = useMemo(() => ['25%', '50%', '75%'], [])
+    const snapPoints = useMemo(() => ['25%', '50%', '100%'], [])
 
     const handleLogOut = () => {
-        setLoading(true)
-        setShowModal(false)
-        setValue(USER_KEY, JSON.stringify('no'))
-            .then(_ => {
-                logout().then(() => {
-                    navigation.navigate('signin')
-                    setLoading(false)
-                })
-            })
-            .catch(error => {
-                alert(error.message)
-            })
+       
     }
 
     const handleOnSearch = (text: string) => {
@@ -152,10 +141,6 @@ const Chats = () => {
             style={{
                 flexDirection: 'column',
             }}>
-            <StatusBar
-                animated={true}
-                backgroundColor={'#5b21b6'}
-            />
             <View
                 style={{
                     backgroundColor: 'white',
@@ -163,7 +148,7 @@ const Chats = () => {
                     flexDirection: 'column',
                     height: '100%',
                 }}>
-                <View
+                {/*   <View
                     style={{
                         alignItems: 'center',
                         justifyContent: 'space-between',
@@ -247,14 +232,22 @@ const Chats = () => {
                             </Modal.Content>
                         </Modal>
                     </View>
-                </View>
+                </View>*/}
                 <View
                     style={{
                         flex: 1,
                         overflow: 'scroll',
                         flexDirection: 'column',
                     }}>
-                    <ChatList chatsList={chatList} />
+                    <FlatList
+                        data={chatList}
+                        renderItem={item => (
+                            <ChatListItem
+                                key={item.index}
+                                item={item.item}
+                            />
+                        )}
+                    />
                 </View>
                 <BottomSheet
                     index={-1}
@@ -285,6 +278,18 @@ const Chats = () => {
                         )}
                     />
                 </BottomSheet>
+                <FAB
+                    onPress={handleOpenBottomSheet}
+                    icon='message-plus-outline'
+                    color={'white'}
+                    style={{
+                        backgroundColor: '#5b21b6',
+                        position: 'absolute',
+                        margin: 16,
+                        right: 0,
+                        bottom: 0,
+                    }}
+                />
             </View>
             <Dialog
                 dismissable={false}

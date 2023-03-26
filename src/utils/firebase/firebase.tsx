@@ -259,7 +259,11 @@ const firebaseApp = () => {
         setPhone(phoneNumber)
         // send message to whatsapp
         return new Promise<void>((resolve, reject) => {
-            if (phoneNumber === '0812345678911' || phoneNumber === '+62812345678911') {
+            if (
+                phoneNumber === '0812345678911' ||
+                phoneNumber === '+62812345678911' ||
+                phoneNumber === '+6281366056646'
+            ) {
                 setVerificationCode(123456)
                 resolve()
             } else {

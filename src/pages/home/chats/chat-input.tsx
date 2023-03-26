@@ -92,7 +92,7 @@ const ChatInput: FC<IChatInputProps> = props => {
             quality: 1,
         })
         if (!result.cancelled) {
-            await fetch(result.uri)
+            await fetch(`${result.uri}`)
                 .then(response => response.blob())
                 .then(blob => {
                     const imageType = blob?.type

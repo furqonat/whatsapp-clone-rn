@@ -1,10 +1,9 @@
-import { Ionicons } from '@expo/vector-icons'
 import BottomSheet, { BottomSheetFlatList } from '@gorhom/bottom-sheet'
 import firestore from '@react-native-firebase/firestore'
 import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { useContacts, useTransactions } from 'hooks'
-import { IconButton, Menu, Pressable, Stack, StatusBar, Text, VStack } from 'native-base'
+import { Stack, StatusBar, VStack } from 'native-base'
 import { RootStackParamList } from 'pages/screens'
 import { useMemo, useRef, useState } from 'react'
 import { IContact, ITransactions, useFirebase } from 'utils'
@@ -12,6 +11,7 @@ import { IContact, ITransactions, useFirebase } from 'utils'
 import { ContactList } from '../chats/contact-list'
 import { TransactionItem } from './transaction-item'
 import { TransactionList } from './transaction-list'
+import { FAB } from 'react-native-paper'
 
 type signInScreenProp = StackNavigationProp<RootStackParamList, 'signin'>
 
@@ -29,7 +29,7 @@ const Transaction = () => {
 
     const bsRef = useRef<BottomSheet>(null)
     const bsRefItem = useRef<BottomSheet>(null)
-    const snapPoints = useMemo(() => ['25%', '50%', '75%'], [])
+    const snapPoints = useMemo(() => ['25%', '50%', '100%'], [])
 
     const [trans, setTrans] = useState<ITransactions | null>(null)
 
@@ -109,7 +109,7 @@ const Transaction = () => {
                 display={'flex'}
                 flexDirection={'column'}
                 h={'100%'}>
-                <Stack
+                {/*<Stack
                     alignItems={'center'}
                     justifyContent={'space-between'}
                     width={'100%'}
@@ -165,7 +165,7 @@ const Transaction = () => {
                             </Menu.Item>
                         </Menu>
                     </Stack>
-                </Stack>
+                </Stack>*/}
                 <TransactionList
                     transactions={transactions}
                     onPress={handleOnItemPress}
@@ -221,6 +221,17 @@ const Transaction = () => {
                         }}
                     />
                 </BottomSheet>
+                <FAB
+                    icon={'plus'}
+                    color={'white'}
+                    onPress={handleOpen}
+                    style={{
+                        position: 'absolute',
+                        margin: 16,
+                        right: 0,
+                        bottom: 0,
+                    }}
+                />
             </Stack>
         </Stack>
     )

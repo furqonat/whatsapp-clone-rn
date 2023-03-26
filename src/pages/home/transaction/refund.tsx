@@ -55,7 +55,7 @@ const Refund = ({ route }: Props) => {
             .then(document => {
                 if (document.exists) {
                     const data = document.data()
-                    setCurrentAmount(data?.transactionAmount.toString())
+                    setCurrentAmount(Number(Number(data?.transactionAmount || 0) - Number(data?.transactionFee || 0)))
                 }
             })
     }, [])

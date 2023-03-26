@@ -1,15 +1,14 @@
-import { Ionicons, MaterialIcons } from '@expo/vector-icons'
 import firestore from '@react-native-firebase/firestore'
 import { useNavigation } from '@react-navigation/native'
 import type { NativeStackScreenProps } from '@react-navigation/native-stack'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { useAvatar, useChats, useContact, useStatus } from 'hooks'
 import moment from 'moment'
-import { Button, IconButton, Input, Menu, Modal, Pressable, useToast } from 'native-base'
 import { RootStackParamList } from 'pages/screens'
 import React, { useEffect, useState } from 'react'
 import { FlatList, Image, StatusBar, Text, View } from 'react-native'
 import ImageModal from 'react-native-image-modal'
+import { ActivityIndicator, Button, Dialog, IconButton, Menu, Snackbar, TextInput } from 'react-native-paper'
 import { IChatItem, IChatList, IChatMessage, IContact, useFirebase } from 'utils'
 
 import { ChatInput } from './chat-input'
@@ -18,18 +17,26 @@ type Props = NativeStackScreenProps<RootStackParamList, 'chatItem', 'Stack'>
 type TransactionScreenProp = StackNavigationProp<RootStackParamList, 'new_transaction'>
 
 const ChatItem = ({ route }: Props) => {
-    const toast = useToast()
-    const toastId = 'save-contact'
     const navigation = useNavigation<TransactionScreenProp>()
 
     const handleBack = () => {
         navigation.goBack()
     }
 
+    const [visible, setVisible] = useState(false)
+    const openMenu = () => setVisible(true)
+    const closeMenu = () => setVisible(false)
+
+    const [limit, setLimit] = useState(10)
+
+    const [snackBar, setSnackBar] = useState(false)
+    const [snackBarText, setSnackBarText] = useState('')
+
     const { user } = useFirebase()
-    const { messages } = useChats({
+    const { messages, loading } = useChats({
         id: route?.params?.chatId,
         user,
+        limit,
     })
 
     const [message, setMessage] = useState<IChatMessage[]>([])
@@ -108,12 +115,8 @@ const ChatItem = ({ route }: Props) => {
                     setIsOpen(false)
                 })
                 .catch(err => {
-                    if (!toast.isActive(toastId)) {
-                        toast.show({
-                            id: toastId,
-                            title: 'Error save contact ' + err?.message,
-                        })
-                    }
+                    setSnackBar(false)
+                    setSnackBarText(err.message)
                     setIsOpen(false)
                 })
         }
@@ -189,14 +192,9 @@ const ChatItem = ({ route }: Props) => {
                             right: 10,
                         }}>
                         <IconButton
+                            color={'white'}
                             onPress={handleBack}
-                            borderRadius='full'
-                            _icon={{
-                                as: Ionicons,
-                                name: 'arrow-back-outline',
-                                color: 'white',
-                                size: '6',
-                            }}
+                            icon={'arrow-left'}
                         />
                         <Image
                             style={{
@@ -239,59 +237,51 @@ const ChatItem = ({ route }: Props) => {
                             alignItems: 'center',
                         }}>
                         <IconButton
+                            color={'white'}
                             onPress={handleUnsopported}
-                            borderRadius={'full'}
-                            _icon={{
-                                as: Ionicons,
-                                name: 'videocam',
-                                color: 'white',
-                                size: '6',
-                            }}
+                            icon={'video'}
                         />
                         <IconButton
+                            color={'white'}
                             onPress={handleUnsopported}
-                            borderRadius='full'
-                            _icon={{
-                                as: MaterialIcons,
-                                name: 'phone',
-                                color: 'white',
-                                size: '6',
-                            }}
+                            icon={'phone'}
                         />
                         <Menu
-                            backgroundColor='white'
-                            shadow={2}
-                            w='190'
-                            trigger={triggerProps => {
-                                return (
-                                    <Pressable accessibilityLabel='More options menu'>
-                                        <IconButton
-                                            {...triggerProps}
-                                            borderRadius='full'
-                                            _icon={{
-                                                as: Ionicons,
-                                                name: 'ellipsis-vertical',
-                                                color: 'white',
-                                                size: '5',
-                                            }}
-                                        />
-                                    </Pressable>
-                                )
-                            }}>
+                            visible={visible}
+                            onDismiss={closeMenu}
+                            anchor={
+                                <IconButton
+                                    color={'white'}
+                                    onPress={openMenu}
+                                    icon={'dots-vertical'}
+                                    // borderRadius='full'
+                                    // _icon={{
+                                    //     as: Ionicons,
+                                    //     name: 'ellipsis-vertical',
+                                    //     color: 'white',
+                                    //     size: '5',
+                                    // }}
+                                />
+                            }>
                             {!contact ? (
-                                <Menu.Item onPress={handleOpenModal}>
-                                    <Text>Tambahkan Ke Kotak</Text>
-                                </Menu.Item>
+                                <Menu.Item
+                                    onPress={handleOpenModal}
+                                    title={'Tambahkan ke kontak'}
+                                />
                             ) : null}
-                            <Menu.Item onPress={() => newTransaction(contact!)}>
-                                <Text>Buat Transaksi</Text>
-                            </Menu.Item>
-                            <Menu.Item disabled={true}>
-                                <Text>Blokir</Text>
-                            </Menu.Item>
-                            <Menu.Item disabled={true}>
-                                <Text>Laporakan</Text>
-                            </Menu.Item>
+                            <Menu.Item
+                                title={'Buat Transaksi'}
+                                onPress={() => newTransaction(contact!)}
+                            />
+
+                            <Menu.Item
+                                disabled={true}
+                                title={'Blokir'}
+                            />
+                            <Menu.Item
+                                disabled={true}
+                                title={'Laporakan'}
+                            />
                         </Menu>
                     </View>
                 </View>
@@ -376,6 +366,19 @@ const ChatItem = ({ route }: Props) => {
                             </View>
                         )
                     }}
+                    onEndReached={() => {
+                        setLimit(limit + 10)
+                    }}
+                    ListFooterComponent={
+                        <View
+                            style={{
+                                display: 'flex',
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                            }}>
+                            {loading && limit < message.length ? <ActivityIndicator color='#2192FF' /> : null}
+                        </View>
+                    }
                 />
                 <ChatInput
                     user={receiver}
@@ -384,36 +387,38 @@ const ChatItem = ({ route }: Props) => {
                 />
             </View>
 
-            <Modal
-                isOpen={isOpen}
-                onClose={handleOpenModal}
-                safeAreaTop={true}>
-                <Modal.Content>
-                    <Modal.Header>
-                        <Text>Simpan Kontan</Text>
-                    </Modal.Header>
-                    <Modal.Body>
-                        <Text>Masukan nama untuk kontak ini</Text>
-                        <Input
-                            variant={'rounded'}
-                            value={contactName}
-                            onChangeText={setContactName}
-                            placeholder={'Nama Kontak'}
-                        />
-                    </Modal.Body>
-                    <Modal.Footer>
-                        <Button.Group space={2}>
-                            <Button
-                                variant='ghost'
-                                colorScheme='blueGray'
-                                onPress={handleOpenModal}>
-                                Cancel
-                            </Button>
-                            <Button onPress={handleSaveContact}>Save</Button>
-                        </Button.Group>
-                    </Modal.Footer>
-                </Modal.Content>
-            </Modal>
+            <Dialog
+                visible={isOpen}
+                onDismiss={handleOpenModal}>
+                <Dialog.Title>
+                    <Text>Simpan Kontan</Text>
+                </Dialog.Title>
+                <Dialog.Content>
+                    <Text>Masukan nama untuk kontak ini</Text>
+                    <TextInput
+                        value={contactName}
+                        onChangeText={setContactName}
+                        placeholder={'Nama Kontak'}
+                    />
+                    <Dialog.Actions>
+                        <Button
+                            mode={'outlined'}
+                            onPress={handleOpenModal}>
+                            Cancel
+                        </Button>
+                        <Button onPress={handleSaveContact}>Save</Button>
+                    </Dialog.Actions>
+                </Dialog.Content>
+            </Dialog>
+            <Snackbar
+                visible={snackBar}
+                action={{
+                    label: 'CLOSE',
+                    onPress: () => setSnackBar(false),
+                }}
+                onDismiss={() => setSnackBar(false)}>
+                {snackBarText}
+            </Snackbar>
         </>
     )
 }

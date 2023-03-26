@@ -24,13 +24,13 @@ const AdminRefund = () => {
     const [title, setTitle] = useState('Transaksi')
     const [menuState, setMenuState] = useState(false)
 
-    const getTotalAmount = (orderId: string) => {
+    /* const getTotalAmount = (orderId: string) => {
         const value = async () => {
             const data = await firestore().collection('transactions').doc(orderId).get()
             return data.data()?.totalAmount
         }
         return value().then(res => res)
-    }
+    }*/
 
     useEffect(() => {
         if (title === 'Verifikasi Users') {

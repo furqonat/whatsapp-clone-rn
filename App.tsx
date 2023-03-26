@@ -1,5 +1,9 @@
+import { NavigationContainer } from '@react-navigation/native'
 import { extendTheme, NativeBaseProvider } from 'native-base'
+import { Provider as PaperProvider } from 'react-native-paper'
+import { Provider } from 'react-redux'
 import { FirebaseProvider } from 'utils'
+import store from 'utils/context'
 
 import { Main } from './src'
 
@@ -21,10 +25,16 @@ const theme = extendTheme({ colors: newColorTheme })
 
 export default function App() {
     return (
-        <FirebaseProvider>
-            <NativeBaseProvider theme={theme}>
-                <Main />
-            </NativeBaseProvider>
-        </FirebaseProvider>
+        <Provider store={store}>
+            <FirebaseProvider>
+                <NativeBaseProvider theme={theme}>
+                    <PaperProvider>
+                        <NavigationContainer>
+                            <Main />
+                        </NavigationContainer>
+                    </PaperProvider>
+                </NativeBaseProvider>
+            </FirebaseProvider>
+        </Provider>
     )
 }
